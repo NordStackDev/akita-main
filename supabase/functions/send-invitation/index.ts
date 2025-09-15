@@ -20,6 +20,7 @@ interface InvitationRequest {
   lastName: string;
   phone?: string;
   organizationId: string;
+  roleId?: string; // Optional role ID, defaults to 'Sælger'
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -29,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, firstName, lastName, phone, organizationId }: InvitationRequest = await req.json();
+    const { email, firstName, lastName, phone, organizationId, roleId }: InvitationRequest = await req.json();
 
     // Get auth user from header
     const authHeader = req.headers.get('Authorization');
@@ -84,19 +85,25 @@ const handler = async (req: Request): Promise<Response> => {
     // Create user account with temporary password
     const temporaryPassword = `temp_${invitationCode}_${Date.now()}`;
     
-    // Get seller role ID
-    const { data: sellerRole, error: roleError } = await supabase
-      .from('user_roles')
-      .select('id')
-      .eq('name', 'seller')
-      .single();
+    // Get role ID (either provided or default to 'Sælger')
+    let targetRoleId = roleId;
+    
+    if (!targetRoleId) {
+      // Get default role ID ('Sælger')
+      const { data: defaultRole, error: roleError } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('name', 'Sælger')
+        .single();
 
-    if (roleError || !sellerRole) {
-      console.error('Error finding seller role:', roleError);
-      return new Response(JSON.stringify({ error: 'Seller role not found' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      if (roleError || !defaultRole) {
+        console.error('Error finding Sælger role:', roleError);
+        return new Response(JSON.stringify({ error: 'Default role not found' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      targetRoleId = defaultRole.id;
     }
 
     // Create user account
@@ -130,7 +137,7 @@ const handler = async (req: Request): Promise<Response> => {
         last_name: lastName,
         phone: phone || '',
         organization_id: organizationId,
-        role_id: sellerRole.id,
+        role_id: targetRoleId,
         first_login_completed: false,
         force_password_reset: true,
       });
