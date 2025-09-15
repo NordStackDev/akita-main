@@ -2,13 +2,49 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginPage } from "@/components/auth/LoginPage";
 import { Dashboard } from "@/components/Dashboard";
+import { SalesApp } from "@/components/sales/SalesApp";
 import { SalesPage } from "@/components/sales/SalesPage";
 import { LocationsPage } from "@/components/locations/LocationsPage";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const AkitaApp = () => {
   const { user, session, loading, signOut } = useAuth();
+  const [userRole, setUserRole] = useState<{ level: number } | null>(null);
+  const [roleLoading, setRoleLoading] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    if (user) {
+      loadUserRole();
+    } else {
+      setRoleLoading(false);
+    }
+  }, [user]);
+
+  const loadUserRole = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select(`
+          role_id,
+          user_roles!inner(level)
+        `)
+        .eq('id', user!.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading user role:', error);
+      } else {
+        setUserRole({ level: data.user_roles.level });
+      }
+    } catch (error) {
+      console.error('Error loading user role:', error);
+    } finally {
+      setRoleLoading(false);
+    }
+  };
+
+  if (loading || roleLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -30,6 +66,12 @@ export const AkitaApp = () => {
     );
   }
 
+  // Show sales interface for sellers (levels 6-8)
+  if (userRole && userRole.level >= 6) {
+    return <SalesApp user={user} onLogout={signOut} />;
+  }
+
+  // Show admin dashboard for higher levels (1-5)
   return (
     <Routes>
       <Route path="/dashboard" element={<Dashboard user={user} onLogout={signOut} />} />
