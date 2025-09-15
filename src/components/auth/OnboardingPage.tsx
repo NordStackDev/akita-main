@@ -1,0 +1,257 @@
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+import { Loader2, User, Lock, Phone, Calendar } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+interface OnboardingPageProps {
+  onComplete: (user: any) => void;
+}
+
+export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    birthDate: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Adgangskoder matcher ikke",
+        description: "Sørg for at begge adgangskoder er ens",
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Adgangskode for kort",
+        description: "Adgangskoden skal være mindst 6 tegn",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Update password
+      const { error: passwordError } = await supabase.auth.updateUser({
+        password: formData.password
+      });
+
+      if (passwordError) {
+        toast({
+          variant: "destructive",
+          title: "Fejl ved opdatering af adgangskode",
+          description: passwordError.message,
+        });
+        return;
+      }
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          variant: "destructive",
+          title: "Ingen bruger fundet",
+          description: "Der opstod en fejl",
+        });
+        return;
+      }
+
+      // Update user information
+      const { error: userError } = await supabase
+        .from('users')
+        .update({
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          name: `${formData.firstName} ${formData.lastName}`,
+          phone: formData.phone,
+          birth_date: formData.birthDate,
+          first_login_completed: true,
+          force_password_reset: false
+        })
+        .eq('id', user.id);
+
+      if (userError) {
+        toast({
+          variant: "destructive",
+          title: "Fejl ved opdatering af profil",
+          description: userError.message,
+        });
+        return;
+      }
+
+      toast({
+        title: "Velkommen til AKITA!",
+        description: "Din profil er oprettet og du er nu klar til at komme i gang",
+      });
+
+      onComplete(user);
+
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Der opstod en fejl",
+        description: "Prøv igen senere",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-lg akita-card border-border">
+        <CardHeader className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 akita-gradient rounded-xl flex items-center justify-center">
+            <span className="text-2xl font-bold text-white">A</span>
+          </div>
+          <CardTitle className="text-2xl font-bold text-foreground">
+            Velkommen til AKITA!
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Udfyld dine oplysninger og opret din adgangskode for at komme i gang
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName" className="text-sm font-medium">
+                  Fornavn *
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                    className="pl-10 bg-input border-border"
+                    placeholder="Dit fornavn"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="lastName" className="text-sm font-medium">
+                  Efternavn *
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                    className="pl-10 bg-input border-border"
+                    placeholder="Dit efternavn"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="phone" className="text-sm font-medium">
+                Telefonnummer
+              </Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className="pl-10 bg-input border-border"
+                  placeholder="12 34 56 78"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="birthDate" className="text-sm font-medium">
+                Fødselsdato
+              </Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={formData.birthDate}
+                  onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
+                  className="pl-10 bg-input border-border"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="password" className="text-sm font-medium">
+                Ny adgangskode *
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="pl-10 bg-input border-border"
+                  placeholder="Mindst 6 tegn"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword" className="text-sm font-medium">
+                Bekræft adgangskode *
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  className="pl-10 bg-input border-border"
+                  placeholder="Gentag adgangskode"
+                  required
+                />
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full akita-gradient hover:akita-glow akita-transition"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              Fuldfør opsætning
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
