@@ -38,8 +38,23 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          onLogin(session.user);
-          navigate("/dashboard");
+          // Check if this is a first-time login requiring password setup
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('first_login_completed, force_password_reset')
+            .eq('id', session.user.id)
+            .single();
+
+          if (!userError && userData && (userData.force_password_reset || !userData.first_login_completed)) {
+            setShowPasswordReset(true);
+            toast({
+              title: "Velkommen til AKITA!",
+              description: "Du skal oprette en ny adgangskode for at komme i gang",
+            });
+          } else {
+            onLogin(session.user);
+            navigate("/dashboard");
+          }
         } else if (event === 'SIGNED_OUT') {
           navigate("/auth");
         }
