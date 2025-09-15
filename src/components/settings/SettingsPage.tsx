@@ -107,12 +107,11 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
       // Upload new profile image if provided
       if (profileImage) {
         const fileExt = profileImage.name.split('.').pop();
-        const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+        const fileName = `${user.id}/${user.id}-${Math.random()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, profileImage);
-
+          .upload(fileName, profileImage, { upsert: true });
         if (uploadError) {
           throw uploadError;
         } else {
