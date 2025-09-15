@@ -85,15 +85,19 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
     }
   };
 
-  const navigationItems = [
-    { title: "Dashboard", url: "/app/dashboard", icon: Home },
-    { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
-    { title: "Lokationer", url: "/app/locations", icon: MapPin },
-    { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
-    { title: "Team", url: "/app/team", icon: Users },
-    // Show tracking for teamlead and above (level <= 5) or developer
-    ...(userRole && (userRole.level <= 5 || userRole.name === 'developer') ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }] : []),
-  ];
+  const navigationItems = userRole && userRole.level >= 6 && userRole.name !== 'developer' 
+    ? [
+        { title: "Forside", url: "/app/dashboard", icon: Home },
+      ]
+    : [
+        { title: "Dashboard", url: "/app/dashboard", icon: Home },
+        { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
+        { title: "Lokationer", url: "/app/locations", icon: MapPin },
+        { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
+        { title: "Team", url: "/app/team", icon: Users },
+        // Show tracking for teamlead and above (level <= 5) or developer
+        ...(userRole && (userRole.level <= 5 || userRole.name === 'developer') ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }] : []),
+      ];
 
   const isActive = (path: string) => currentPath === path;
   const isExpanded = navigationItems.some((item) => isActive(item.url));
