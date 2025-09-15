@@ -23,6 +23,15 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Parse optional redirectTo from request body
+    let redirectTo: string | undefined;
+    try {
+      const body = await req.json();
+      redirectTo = body?.redirectTo;
+    } catch (_) {
+      // No body provided; proceed with defaults
+    }
+
     console.log('Creating developer user...');
 
     // Create developer user in Supabase Auth
@@ -144,13 +153,34 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't fail the whole operation for profile creation
     }
 
-    console.log('Developer user created successfully');
+    // Generate a magic link for easy login
+    let actionLink: string | undefined;
+    try {
+      const linkParams: any = {
+        type: 'magiclink',
+        email: 'emilmh.tc@gmail.com',
+      };
+      if (redirectTo) {
+        linkParams.options = { redirectTo };
+      }
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink(linkParams);
+      if (linkError) {
+        console.error('Error generating magic link:', linkError);
+      } else {
+        actionLink = (linkData as any)?.properties?.action_link;
+      }
+    } catch (e) {
+      console.error('Unexpected error generating magic link:', e);
+    }
+
+    console.log('Developer user created successfully', actionLink ? 'with magic link' : '');
 
     return new Response(JSON.stringify({ 
       success: true, 
       message: 'Developer user created successfully',
       userId,
-      email: 'emilmh.tc@gmail.com'
+      email: 'emilmh.tc@gmail.com',
+      action_link: actionLink
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

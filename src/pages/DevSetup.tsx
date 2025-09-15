@@ -8,13 +8,16 @@ import { Loader2, Code, User, CheckCircle } from "lucide-react";
 export const DevSetup = () => {
   const [loading, setLoading] = useState(false);
   const [devUserCreated, setDevUserCreated] = useState(false);
+  const [magicLink, setMagicLink] = useState<string | null>(null);
   const { toast } = useToast();
 
   const createDevUser = async () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-dev-user');
+      const { data, error } = await supabase.functions.invoke('create-dev-user', {
+        body: { redirectTo: `${window.location.origin}/app/dashboard` },
+      });
 
       if (error) {
         console.error('Error creating dev user:', error);
@@ -28,9 +31,10 @@ export const DevSetup = () => {
 
       if (data?.success) {
         setDevUserCreated(true);
+        setMagicLink(data?.action_link || null);
         toast({
           title: "Developer bruger oprettet!",
-          description: "Du kan nu logge ind med emilmh.tc@gmail.com",
+          description: data?.action_link ? "Klik på Magic Link for at logge ind" : "Du kan nu logge ind med dev-kontoen",
         });
       } else {
         toast({
@@ -103,20 +107,39 @@ export const DevSetup = () => {
                 <h3 className="font-semibold text-foreground mb-2">
                   Developer bruger oprettet!
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Du kan nu gå tilbage til login siden og logge ind med:
-                </p>
-                <div className="p-3 bg-input rounded-lg text-sm">
-                  <p><strong>Email:</strong> emilmh.tc@gmail.com</p>
-                  <p><strong>Password:</strong> Krj66pgw!</p>
-                </div>
+                {magicLink ? (
+                  <>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Klik nedenfor for at logge ind via Magic Link:
+                    </p>
+                    <Button 
+                      onClick={() => (window.location.href = magicLink!)}
+                      className="w-full akita-gradient hover:akita-glow akita-transition"
+                    >
+                      Åbn Magic Link
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Hvis linket ikke virker, prøv igen eller gå til login og brug dine oplysninger nedenfor.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Du kan nu gå tilbage til login siden og logge ind med:
+                    </p>
+                    <div className="p-3 bg-input rounded-lg text-sm">
+                      <p><strong>Email:</strong> emilmh.tc@gmail.com</p>
+                      <p><strong>Password:</strong> Krj66pgw!</p>
+                    </div>
+                    <Button 
+                      onClick={() => (window.location.href = '/app/auth')}
+                      className="w-full akita-gradient hover:akita-glow akita-transition"
+                    >
+                      Gå til Login
+                    </Button>
+                  </>
+                )}
               </div>
-              <Button 
-                onClick={() => window.location.href = '/app/auth'}
-                className="w-full akita-gradient hover:akita-glow akita-transition"
-              >
-                Gå til Login
-              </Button>
             </div>
           )}
         </CardContent>
