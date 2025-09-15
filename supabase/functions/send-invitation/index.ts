@@ -107,12 +107,46 @@ const handler = async (req: Request): Promise<Response> => {
       targetRoleId = defaultRole.id;
     }
 
-    // Create or update user account
-    let targetUserId: string | null = null;
-    const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
-      email: email.toLowerCase(),
+// Create or update user account
+let targetUserId: string | null = null;
+const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
+  email: email.toLowerCase(),
+  // Set a temporary password to satisfy API requirements, but we will NOT ask users to use it
+  password: temporaryPassword,
+  // Ensure the user must verify via invite link
+  email_confirm: false,
+  user_metadata: {
+    first_name: firstName,
+    last_name: lastName,
+    phone: phone || '',
+    invitation_code: invitationCode,
+  }
+});
+
+if (createUserError) {
+  // If the user already exists, just update metadata and ensure email is unconfirmed so invite link works
+  if (createUserError.message?.toLowerCase().includes('already been registered')) {
+    const { data: usersList, error: listErr } = await supabase.auth.admin.listUsers();
+    if (listErr) {
+      console.error('Error listing users:', listErr);
+      return new Response(JSON.stringify({ error: 'Failed to locate existing user' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const existing = usersList.users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+    if (!existing) {
+      return new Response(JSON.stringify({ error: 'Existing user not found' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    targetUserId = existing.id;
+
+    const { error: updateErr } = await supabase.auth.admin.updateUserById(targetUserId, {
+      // Keep temp password but require verification via link
       password: temporaryPassword,
-      email_confirm: true,
+      email_confirm: false,
       user_metadata: {
         first_name: firstName,
         last_name: lastName,
@@ -120,54 +154,23 @@ const handler = async (req: Request): Promise<Response> => {
         invitation_code: invitationCode,
       }
     });
-
-    if (createUserError) {
-      // If the user already exists, update password and metadata
-      if (createUserError.message?.toLowerCase().includes('already been registered')) {
-        const { data: usersList, error: listErr } = await supabase.auth.admin.listUsers();
-        if (listErr) {
-          console.error('Error listing users:', listErr);
-          return new Response(JSON.stringify({ error: 'Failed to locate existing user' }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        const existing = usersList.users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
-        if (!existing) {
-          return new Response(JSON.stringify({ error: 'Existing user not found' }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        targetUserId = existing.id;
-
-        const { error: updateErr } = await supabase.auth.admin.updateUserById(targetUserId, {
-          password: temporaryPassword,
-          email_confirm: true,
-          user_metadata: {
-            first_name: firstName,
-            last_name: lastName,
-            phone: phone || '',
-            invitation_code: invitationCode,
-          }
-        });
-        if (updateErr) {
-          console.error('Error updating existing user:', updateErr);
-          return new Response(JSON.stringify({ error: 'Failed to update existing user' }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-      } else {
-        console.error('Error creating user (non-duplicate):', createUserError);
-        return new Response(JSON.stringify({ error: 'Failed to create user account' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-    } else {
-      targetUserId = newUser.user!.id;
+    if (updateErr) {
+      console.error('Error updating existing user:', updateErr);
+      return new Response(JSON.stringify({ error: 'Failed to update existing user' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+  } else {
+    console.error('Error creating user (non-duplicate):', createUserError);
+    return new Response(JSON.stringify({ error: 'Failed to create user account' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+} else {
+  targetUserId = newUser.user!.id;
+}
 
     // Upsert user into users table
     const { error: userUpsertError } = await supabase
@@ -192,55 +195,65 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Send invitation email
-    const appOrigin = (appUrl && appUrl.trim().length > 0) ? appUrl : (req.headers.get('origin') || 'http://localhost:5173');
-    const emailResponse = await resend.emails.send({
-      from: 'AKITA <noreply@resend.dev>',
-      to: [email],
-      subject: 'Velkommen til AKITA - Din invitation er klar!',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #ff0000, #cc0000); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">Velkommen til AKITA!</h1>
-            <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Din salgsplatform er klar til brug</p>
-          </div>
-          
-          <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
-            <h2 style="color: #333; margin-top: 0;">Hej ${firstName}!</h2>
-            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-              Du er blevet inviteret til at bruge AKITA salgsplatformen. For at komme i gang skal du logge ind med din email og følgende engangskode:
-            </p>
-            
-            <div style="background: white; border: 2px solid #ff0000; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-              <p style="margin: 0; color: #666; font-size: 14px;">Din engangskode:</p>
-              <h3 style="margin: 10px 0 0 0; color: #ff0000; font-size: 24px; letter-spacing: 2px; font-family: monospace;">${invitationCode}</h3>
-            </div>
-            
-            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-              <strong>Sådan logger du ind første gang:</strong><br>
-              1. Gå til AKITA login siden<br>
-              2. Indtast din email: <strong>${email}</strong><br>
-              3. Indtast din engangskode som adgangskode: <strong>${invitationCode}</strong><br>
-              4. Efter første login bliver du bedt om at oprette en ny adgangskode
-            </p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${appOrigin}/app/auth" 
-                 style="background: linear-gradient(135deg, #ff0000, #cc0000); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                Log ind på AKITA
-              </a>
-            </div>
-          </div>
-          
-          <div style="text-align: center; color: #999; font-size: 12px;">
-            <p>Denne invitation udløber om 7 dage.</p>
-            <p>Hvis du ikke har anmodet om denne invitation, kan du ignorere denne email.</p>
-          </div>
-        </div>
-      `,
-    });
+// Generate Supabase invite verification link
+const appOrigin = (appUrl && appUrl.trim().length > 0) ? appUrl : (req.headers.get('origin') || 'http://localhost:5173');
+const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+  type: 'invite',
+  email: email.toLowerCase(),
+  options: { redirectTo: `${appOrigin}/app/auth` }
+});
 
-    console.log('Invitation sent successfully:', emailResponse);
+if (linkError) {
+  console.error('Error generating invite link:', linkError);
+  return new Response(JSON.stringify({ error: 'Failed to generate invite link' }), {
+    status: 500,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+const verifyLink = (linkData as any)?.properties?.action_link || (linkData as any)?.properties?.email_otp_link || (linkData as any)?.action_link || `${appOrigin}/app/auth`;
+
+// Send invitation email with verification link
+const emailResponse = await resend.emails.send({
+  from: 'AKITA <noreply@resend.dev>',
+  to: [email],
+  subject: 'Velkommen til AKITA – Bekræft din konto',
+  html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #ff0000, #cc0000); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">Velkommen til AKITA!</h1>
+        <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Din salgsplatform er klar til brug</p>
+      </div>
+      
+      <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: #333; margin-top: 0;">Hej ${firstName}!</h2>
+        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+          Du er blevet inviteret til AKITA. For at komme i gang skal du først bekræfte din email.
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verifyLink}" 
+             style="background: linear-gradient(135deg, #ff0000, #cc0000); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            Bekræft din konto
+          </a>
+        </div>
+        <p style="color: #666; line-height: 1.6;">
+          Efter bekræftelse bliver du logget ind og bliver bedt om at oprette din egen adgangskode.
+          Du kan derefter tilgå appen via <a href="${appOrigin}/app/auth">${appOrigin}/app/auth</a>.
+        </p>
+        <p style="color: #a00; line-height: 1.6; margin-top: 16px;">
+          Bemærk: Login med engangskode er ikke understøttet. Brug linket ovenfor til at bekræfte din konto.
+        </p>
+      </div>
+      
+      <div style="text-align: center; color: #999; font-size: 12px;">
+        <p>Denne invitation udløber om 7 dage.</p>
+        <p>Hvis du ikke har anmodet om denne invitation, kan du ignorere denne email.</p>
+      </div>
+    </div>
+  `,
+});
+
+console.log('Invitation sent successfully:', emailResponse);
 
     return new Response(JSON.stringify({ 
       success: true, 
