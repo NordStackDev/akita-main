@@ -158,8 +158,9 @@ export const Dashboard = () => {
     }
   ];
 
-  const userName = dashboardData.userProfile?.user?.name || 
-                   user?.user_metadata?.first_name || 
+  const userName = user?.user_metadata?.first_name || 
+                   dashboardData.userProfile?.first_name ||
+                   dashboardData.userProfile?.user?.first_name ||
                    user?.email?.split('@')[0] || 
                    'Bruger';
 
