@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Navigation } from "@/components/Navigation";
+import { InviteUserForm } from "@/components/admin/InviteUserForm";
 import { 
   BarChart3, 
   Users, 
@@ -37,6 +38,8 @@ interface DashboardData {
   weeklyTarget: number;
   recentSales: any[];
   userProfile: any;
+  isAdmin: boolean;
+  organizationId: string | null;
 }
 
 export const Dashboard = ({ user, onLogout }: DashboardProps) => {
@@ -46,7 +49,9 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
     teamRank: 0,
     weeklyTarget: 100,
     recentSales: [],
-    userProfile: null
+    userProfile: null,
+    isAdmin: false,
+    organizationId: null
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -57,7 +62,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch user profile
+      // Fetch user profile with role and organization info
       const { data: profile } = await supabase
         .from('profiles')
         .select(`
@@ -65,10 +70,18 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
           user_roles (
             name,
             level
+          ),
+          organizations (
+            id,
+            name
           )
         `)
         .eq('user_id', user.id)
         .single();
+
+      // Check if user is admin (level <= 2)
+      const isAdmin = profile?.user_roles?.level <= 2;
+      const organizationId = profile?.organization_id;
 
       // Fetch user's sales
       const { data: sales } = await supabase
@@ -91,7 +104,9 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
         teamRank: Math.floor(Math.random() * 10) + 1, // Mock data for now
         weeklyTarget: 100,
         recentSales: sales || [],
-        userProfile: profile
+        userProfile: profile,
+        isAdmin,
+        organizationId
       });
 
     } catch (error) {
@@ -252,6 +267,16 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
             ))}
           </div>
         </div>
+
+        {/* Admin Section */}
+        {dashboardData.isAdmin && dashboardData.organizationId && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4">Admin funktioner</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <InviteUserForm organizationId={dashboardData.organizationId} />
+            </div>
+          </div>
+        )}
 
         {/* Recent Sales */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
