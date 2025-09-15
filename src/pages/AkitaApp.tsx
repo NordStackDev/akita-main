@@ -9,6 +9,7 @@ import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackingPage } from "@/components/tracking/TrackingPage";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { OnboardingPage } from "@/components/auth/OnboardingPage";
 
 interface UserRole {
   level: number;
@@ -19,6 +20,7 @@ export const AkitaApp = () => {
   const { user, session, loading, signOut } = useAuth();
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [roleLoading, setRoleLoading] = useState(true);
+  const [onboardingRequired, setOnboardingRequired] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -30,22 +32,37 @@ export const AkitaApp = () => {
 
   const loadUserRole = async () => {
     try {
+      // Ensure invited user row is attached to auth user id (no-op if already attached)
+      try {
+        await supabase.rpc('attach_auth_user_to_invited_user');
+      } catch (e) {
+        // ignore
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select(`
+          first_login_completed,
+          force_password_reset,
           role_id,
           user_roles!inner(level, name)
         `)
         .eq('id', user!.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading user role:', error);
-      } else {
+      }
+
+      if (data) {
         setUserRole({ 
           level: data.user_roles.level,
           name: data.user_roles.name 
         });
+        setOnboardingRequired(Boolean(data.force_password_reset) || !Boolean(data.first_login_completed));
+      } else {
+        // If no user row yet, force onboarding to collect basics
+        setOnboardingRequired(true);
       }
     } catch (error) {
       console.error('Error loading user role:', error);
@@ -76,6 +93,20 @@ export const AkitaApp = () => {
     );
   }
 
+  // Force onboarding flow if required
+  if (onboardingRequired) {
+    const handleOnboardingComplete = () => {
+      setOnboardingRequired(false);
+      loadUserRole();
+    };
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<OnboardingPage onComplete={handleOnboardingComplete} />} />
+        <Route path="*" element={<Navigate to="/app/onboarding" replace />} />
+      </Routes>
+    );
+  }
+
   // Developer gets access to everything
   if (userRole && userRole.name === 'developer') {
     return (
@@ -97,6 +128,7 @@ export const AkitaApp = () => {
     return (
       <Routes>
         <Route path="/sales" element={<SalesApp user={user} onLogout={signOut} />} />
+        <Route path="/sales/new" element={<SalesPage user={user} onLogout={signOut} />} />
         <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
         <Route path="/" element={<Navigate to="/app/sales" replace />} />
         <Route path="*" element={<Navigate to="/app/sales" replace />} />

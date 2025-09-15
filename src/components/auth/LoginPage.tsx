@@ -37,7 +37,7 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
           setShowOnboarding(true);
         } else {
           onLogin(session.user);
-          navigate("/dashboard");
+          navigate("/app/dashboard");
         }
       }
     };
@@ -70,10 +70,10 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
             });
           } else {
             onLogin(session.user);
-            navigate("/dashboard");
+            navigate("/app/dashboard");
           }
         } else if (event === 'SIGNED_OUT') {
-          navigate("/auth");
+          navigate("/app/auth");
         }
       }
     );

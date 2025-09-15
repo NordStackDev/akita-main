@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, MapPin, Trophy, Target, Star, Settings, LogOut } from "lucide-react";
+import { Menu, MapPin, Trophy, Target, Star, Settings, LogOut, ArrowRightCircle, Lock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from '@supabase/supabase-js';
 import { useNavigate } from "react-router-dom";
@@ -34,6 +34,7 @@ interface TopSeller {
 
 export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [lockedLocationId, setLockedLocationId] = useState<string | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [userPoints, setUserPoints] = useState(0);
   const [userData, setUserData] = useState<UserData>({});
