@@ -48,6 +48,13 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
+          // Try to attach the authenticated user to any existing invited user record
+          try {
+            await supabase.rpc('attach_auth_user_to_invited_user');
+          } catch (error) {
+            console.error('Error attaching user:', error);
+          }
+
           // Check if this is a first-time login requiring onboarding
           const { data: userData, error: userError } = await supabase
             .from('users')

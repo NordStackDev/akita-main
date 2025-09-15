@@ -1693,6 +1693,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      attach_auth_user_to_invited_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       create_developer_user: {
         Args: Record<PropertyKey, never>
         Returns: undefined
