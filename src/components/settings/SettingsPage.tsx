@@ -111,7 +111,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
         
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, profileImage, { upsert: true });
+          .upload(fileName, profileImage, { upsert: true, contentType: profileImage.type, cacheControl: '3600' });
         if (uploadError) {
           throw uploadError;
         } else {
