@@ -97,7 +97,7 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
       // Upload profile image if provided
       if (profileImage) {
         const fileExt = profileImage.name.split('.').pop();
-        const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+        const fileName = `${user.id}/${user.id}-${Math.random()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('avatars')
