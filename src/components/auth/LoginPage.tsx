@@ -31,9 +31,12 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
           .from('users')
           .select('first_login_completed, force_password_reset')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
 
-        if (!userError && userData && (userData.force_password_reset || !userData.first_login_completed)) {
+        if (userError) {
+          console.error('Error checking user status:', userError);
+          setShowOnboarding(true);
+        } else if (!userData || userData.force_password_reset || !userData.first_login_completed) {
           setShowOnboarding(true);
         } else {
           onLogin(session.user);
@@ -43,6 +46,18 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
     };
     
     checkUser();
+
+    // If redirected from email verification (invite/signup/recovery), force onboarding
+    (async () => {
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.replace('#','?'));
+        const type = hashParams.get('type');
+        if (type === 'signup' || type === 'recovery' || type === 'invite') {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) setShowOnboarding(true);
+        }
+      } catch {}
+    })();
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -60,9 +75,9 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
             .from('users')
             .select('first_login_completed, force_password_reset')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
-          if (!userError && userData && (userData.force_password_reset || !userData.first_login_completed)) {
+          if (userError || !userData || userData.force_password_reset || !userData.first_login_completed) {
             setShowOnboarding(true);
             toast({
               title: "Velkommen til AKITA!",
@@ -106,13 +121,13 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
           .from('users')
           .select('first_login_completed, force_password_reset')
           .eq('id', data.user.id)
-          .single();
+          .maybeSingle();
 
         if (userError) {
           console.error('Error checking user status:', userError);
         }
 
-        if (userData && (userData.force_password_reset || !userData.first_login_completed)) {
+        if (!userData || userData.force_password_reset || !userData.first_login_completed) {
           setShowOnboarding(true);
           toast({
             title: "Velkommen!",
