@@ -105,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
         force_password_reset: false,
         status: 'active'
       }, {
-        onConflict: 'email'
+        onConflict: 'id'
       });
 
     if (userInsertError) {
