@@ -31,7 +31,7 @@ interface NavigationProps {
 
 export const Navigation = ({ user, onLogout }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userRole, setUserRole] = useState<{ level: number } | null>(null);
+  const [userRole, setUserRole] = useState<{ level: number; name?: string } | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,7 +45,7 @@ export const Navigation = ({ user, onLogout }: NavigationProps) => {
         .from('users')
         .select(`
           role_id,
-          user_roles!inner(level)
+          user_roles!inner(level, name)
         `)
         .eq('id', user.id)
         .single();
@@ -53,7 +53,10 @@ export const Navigation = ({ user, onLogout }: NavigationProps) => {
       if (error) {
         console.error('Error loading user role:', error);
       } else {
-        setUserRole({ level: data.user_roles.level });
+        setUserRole({ 
+          level: data.user_roles.level,
+          name: data.user_roles.name 
+        });
       }
     } catch (error) {
       console.error('Error loading user role:', error);
@@ -66,8 +69,8 @@ export const Navigation = ({ user, onLogout }: NavigationProps) => {
     { name: "Lokationer", href: "/locations", icon: MapPin },
     { name: "Statistikker", href: "/stats", icon: BarChart3 },
     { name: "Team", href: "/team", icon: Users },
-    // Show tracking only for teamlead and above (level <= 5)
-    ...(userRole && userRole.level <= 5 ? [{ name: "Sælger Tracking", href: "/tracking", icon: Target }] : []),
+    // Show tracking for teamlead and above (level <= 5) or developer
+    ...(userRole && (userRole.level <= 5 || userRole.name === 'developer') ? [{ name: "Sælger Tracking", href: "/tracking", icon: Target }] : []),
   ];
 
   const userName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Bruger';

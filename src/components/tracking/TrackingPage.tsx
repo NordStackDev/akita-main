@@ -56,15 +56,15 @@ export const TrackingPage = ({ user, onLogout }: TrackingPageProps) => {
         .from('users')
         .select(`
           role_id,
-          user_roles!inner(level)
+          user_roles!inner(level, name)
         `)
         .eq('id', user.id)
         .single();
 
       if (roleError) throw roleError;
 
-      // Only allow tracking if user is teamlead or higher (level <= 5)
-      if (userRole.user_roles.level > 5) {
+      // Only allow tracking if user is teamlead or higher (level <= 5) or developer
+      if (userRole.user_roles.level > 5 && userRole.user_roles.name !== 'developer') {
         toast({
           variant: "destructive",
           title: "Ingen tilladelse",

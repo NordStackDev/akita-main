@@ -10,9 +10,14 @@ import { TrackingPage } from "@/components/tracking/TrackingPage";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface UserRole {
+  level: number;
+  name?: string;
+}
+
 export const AkitaApp = () => {
   const { user, session, loading, signOut } = useAuth();
-  const [userRole, setUserRole] = useState<{ level: number } | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [roleLoading, setRoleLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +34,7 @@ export const AkitaApp = () => {
         .from('users')
         .select(`
           role_id,
-          user_roles!inner(level)
+          user_roles!inner(level, name)
         `)
         .eq('id', user!.id)
         .single();
@@ -37,7 +42,10 @@ export const AkitaApp = () => {
       if (error) {
         console.error('Error loading user role:', error);
       } else {
-        setUserRole({ level: data.user_roles.level });
+        setUserRole({ 
+          level: data.user_roles.level,
+          name: data.user_roles.name 
+        });
       }
     } catch (error) {
       console.error('Error loading user role:', error);
@@ -64,6 +72,22 @@ export const AkitaApp = () => {
       <Routes>
         <Route path="/auth" element={<LoginPage onLogin={() => {}} />} />
         <Route path="*" element={<Navigate to="/app/auth" replace />} />
+      </Routes>
+    );
+  }
+
+  // Developer gets access to everything
+  if (userRole && userRole.name === 'developer') {
+    return (
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard user={user} onLogout={signOut} />} />
+        <Route path="/sales" element={<SalesPage user={user} onLogout={signOut} />} />
+        <Route path="/locations" element={<LocationsPage user={user} onLogout={signOut} />} />
+        <Route path="/tracking" element={<TrackingPage user={user} onLogout={signOut} />} />
+        <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
+        <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
       </Routes>
     );
   }
