@@ -427,6 +427,44 @@ export type Database = {
         }
         Relationships: []
       }
+      invitation_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by_user_id: string | null
+          email: string
+          expires_at: string
+          id: string
+          used_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by_user_id?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_codes_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       location_usage: {
         Row: {
           created_at: string
@@ -1561,6 +1599,7 @@ export type Database = {
           channel_type: string | null
           created_at: string
           email: string
+          first_login_completed: boolean | null
           first_name: string | null
           force_password_reset: boolean | null
           id: string
@@ -1584,6 +1623,7 @@ export type Database = {
           channel_type?: string | null
           created_at?: string
           email: string
+          first_login_completed?: boolean | null
           first_name?: string | null
           force_password_reset?: boolean | null
           id?: string
@@ -1607,6 +1647,7 @@ export type Database = {
           channel_type?: string | null
           created_at?: string
           email?: string
+          first_login_completed?: boolean | null
           first_name?: string | null
           force_password_reset?: boolean | null
           id?: string
@@ -1652,6 +1693,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_invitation_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_organization_id: {
         Args: { user_uuid: string }
         Returns: string
