@@ -36,6 +36,7 @@ interface DashboardData {
   weeklyTarget: number;
   recentSales: any[];
   userProfile: any;
+  userInfo: { first_name?: string; last_name?: string } | null;
   isAdmin: boolean;
   organizationId: string | null;
 }
@@ -49,6 +50,7 @@ export const Dashboard = () => {
     weeklyTarget: 100,
     recentSales: [],
     userProfile: null,
+    userInfo: null,
     isAdmin: false,
     organizationId: null
   });
@@ -78,6 +80,13 @@ export const Dashboard = () => {
         .eq('user_id', user.id)
         .single();
 
+      // Fetch first/last name from users table
+      const { data: userRow } = await supabase
+        .from('users')
+        .select('first_name, last_name, name')
+        .eq('id', user.id)
+        .single();
+
       // Check if user is admin (level <= 2)
       const isAdmin = profile?.user_roles?.level <= 2;
       const organizationId = profile?.organization_id;
@@ -104,6 +113,7 @@ export const Dashboard = () => {
         weeklyTarget: 100,
         recentSales: sales || [],
         userProfile: profile,
+        userInfo: userRow || null,
         isAdmin,
         organizationId
       });
@@ -158,9 +168,8 @@ export const Dashboard = () => {
     }
   ];
 
-  const userName = user?.user_metadata?.first_name || 
-                   dashboardData.userProfile?.first_name ||
-                   dashboardData.userProfile?.user?.first_name ||
+  const userName = dashboardData.userInfo?.first_name ||
+                   user?.user_metadata?.first_name || 
                    user?.email?.split('@')[0] || 
                    'Bruger';
 
