@@ -41,9 +41,7 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
           lastName,
           phone,
           organizationId,
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          appUrl: window.location.origin,
         },
       });
 
