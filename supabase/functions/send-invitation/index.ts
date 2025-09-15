@@ -21,6 +21,7 @@ interface InvitationRequest {
   phone?: string;
   organizationId: string;
   roleId?: string; // Optional role ID, defaults to 'Sælger'
+  appUrl?: string; // Optional app URL to include in email link
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -30,7 +31,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, firstName, lastName, phone, organizationId, roleId }: InvitationRequest = await req.json();
+    const { email, firstName, lastName, phone, organizationId, roleId, appUrl }: InvitationRequest = await req.json();
 
     // Get auth user from header
     const authHeader = req.headers.get('Authorization');
@@ -106,7 +107,8 @@ const handler = async (req: Request): Promise<Response> => {
       targetRoleId = defaultRole.id;
     }
 
-    // Create user account
+    // Create or update user account
+    let targetUserId: string | null = null;
     const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password: temporaryPassword,
@@ -120,18 +122,58 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (createUserError) {
-      console.error('Error creating user:', createUserError);
-      return new Response(JSON.stringify({ error: 'Failed to create user account' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // If the user already exists, update password and metadata
+      if (createUserError.message?.toLowerCase().includes('already been registered')) {
+        const { data: usersList, error: listErr } = await supabase.auth.admin.listUsers();
+        if (listErr) {
+          console.error('Error listing users:', listErr);
+          return new Response(JSON.stringify({ error: 'Failed to locate existing user' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        const existing = usersList.users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+        if (!existing) {
+          return new Response(JSON.stringify({ error: 'Existing user not found' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        targetUserId = existing.id;
+
+        const { error: updateErr } = await supabase.auth.admin.updateUserById(targetUserId, {
+          password: temporaryPassword,
+          email_confirm: true,
+          user_metadata: {
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone || '',
+            invitation_code: invitationCode,
+          }
+        });
+        if (updateErr) {
+          console.error('Error updating existing user:', updateErr);
+          return new Response(JSON.stringify({ error: 'Failed to update existing user' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        console.error('Error creating user (non-duplicate):', createUserError);
+        return new Response(JSON.stringify({ error: 'Failed to create user account' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      targetUserId = newUser.user!.id;
     }
 
-    // Add user to users table
-    const { error: userInsertError } = await supabase
+    // Upsert user into users table
+    const { error: userUpsertError } = await supabase
       .from('users')
-      .insert({
-        id: newUser.user!.id,
+      .upsert({
+        id: targetUserId!,
         email: email.toLowerCase(),
         first_name: firstName,
         last_name: lastName,
@@ -140,12 +182,10 @@ const handler = async (req: Request): Promise<Response> => {
         role_id: targetRoleId,
         first_login_completed: false,
         force_password_reset: true,
-      });
+      }, { onConflict: 'id' });
 
-    if (userInsertError) {
-      console.error('Error inserting user data:', userInsertError);
-      // Clean up auth user if user data insert fails
-      await supabase.auth.admin.deleteUser(newUser.user!.id);
+    if (userUpsertError) {
+      console.error('Error upserting user data:', userUpsertError);
       return new Response(JSON.stringify({ error: 'Failed to create user profile' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -153,6 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send invitation email
+    const appOrigin = (appUrl && appUrl.trim().length > 0) ? appUrl : (req.headers.get('origin') || 'http://localhost:5173');
     const emailResponse = await resend.emails.send({
       from: 'AKITA <noreply@resend.dev>',
       to: [email],
@@ -184,7 +225,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${supabaseUrl.replace('https://dlvqoevnmhmgowcchxfm.supabase.co', window.location?.origin || 'https://your-app-url.com')}/app/auth" 
+              <a href="${appOrigin}/app/auth" 
                  style="background: linear-gradient(135deg, #ff0000, #cc0000); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
                 Log ind på AKITA
               </a>
