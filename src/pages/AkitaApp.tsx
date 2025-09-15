@@ -66,12 +66,12 @@ export const AkitaApp = () => {
     );
   }
 
-  // Show sales interface for sellers (levels 6-8)
+  // Show sales interface for sellers (levels 6-8) 
   if (userRole && userRole.level >= 6) {
     return <SalesApp user={user} onLogout={signOut} />;
   }
 
-  // Show admin dashboard for higher levels (1-5)
+  // Show admin dashboard for higher levels (0-5: developer, admin, CEO, direktør, chef, leder)
   return (
     <Routes>
       <Route path="/dashboard" element={<Dashboard user={user} onLogout={signOut} />} />
