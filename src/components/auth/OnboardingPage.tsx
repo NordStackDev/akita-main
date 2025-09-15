@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, User, Lock, Phone, Calendar } from "lucide-react";
+import { Loader2, User, Lock, Phone, Calendar, Upload, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface OnboardingPageProps {
   onComplete: (user: any) => void;
@@ -20,10 +21,26 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
     phone: '',
     birthDate: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    bankAccount: '',
+    bankRegNumber: ''
   });
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +91,32 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
         return;
       }
 
+      let profileImageUrl = null;
+
+      // Upload profile image if provided
+      if (profileImage) {
+        const fileExt = profileImage.name.split('.').pop();
+        const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, profileImage);
+
+        if (uploadError) {
+          console.error('Image upload error:', uploadError);
+          toast({
+            variant: "destructive",
+            title: "Billede kunne ikke uploades",
+            description: "Profilen oprettes uden billede",
+          });
+        } else {
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+          profileImageUrl = publicUrl;
+        }
+      }
+
       // Update user information
       const { error: userError } = await supabase
         .from('users')
@@ -83,10 +126,20 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
           name: `${formData.firstName} ${formData.lastName}`,
           phone: formData.phone,
           birth_date: formData.birthDate,
+          bank_account_number: formData.bankAccount,
+          bank_reg_number: formData.bankRegNumber,
           first_login_completed: true,
           force_password_reset: false
         })
         .eq('id', user.id);
+
+      // Update profile with image if uploaded
+      if (profileImageUrl) {
+        await supabase
+          .from('profiles')
+          .update({ profile_image_url: profileImageUrl })
+          .eq('user_id', user.id);
+      }
 
       if (userError) {
         toast({
@@ -131,7 +184,35 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
         </CardHeader>
         
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Profile Picture Upload */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src={profileImagePreview || undefined} />
+                  <AvatarFallback className="text-2xl">
+                    {formData.firstName ? formData.firstName[0] : <User />}
+                  </AvatarFallback>
+                </Avatar>
+                <label 
+                  htmlFor="profileImage" 
+                  className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors"
+                >
+                  <Camera className="w-4 h-4" />
+                  <input
+                    id="profileImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                Klik på kameraet for at uploade dit profilbillede
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName" className="text-sm font-medium">
@@ -237,6 +318,43 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
                   required
                 />
               </div>
+            </div>
+
+            {/* Bank Information */}
+            <div className="space-y-4 pt-4 border-t border-border">
+              <h3 className="font-semibold text-foreground">Bankoplysninger (valgfrit)</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="bankRegNumber" className="text-sm font-medium">
+                    Reg. nummer
+                  </Label>
+                  <Input
+                    id="bankRegNumber"
+                    type="text"
+                    value={formData.bankRegNumber}
+                    onChange={(e) => setFormData({...formData, bankRegNumber: e.target.value})}
+                    className="bg-input border-border"
+                    placeholder="1234"
+                    maxLength={4}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="bankAccount" className="text-sm font-medium">
+                    Kontonummer
+                  </Label>
+                  <Input
+                    id="bankAccount"
+                    type="text"
+                    value={formData.bankAccount}
+                    onChange={(e) => setFormData({...formData, bankAccount: e.target.value})}
+                    className="bg-input border-border"
+                    placeholder="1234567890"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Bankoplysninger bruges til udbetaling af løn og provision
+              </p>
             </div>
 
             <Button 
