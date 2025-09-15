@@ -74,6 +74,18 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Ensure password and email confirmation are set for existing user
+    const { data: updatedUser, error: updateError } = await supabase.auth.admin.updateUserById(userId, {
+      password: 'Krj66pgw!',
+      email_confirm: true,
+      user_metadata: { first_name: 'Developer', last_name: 'Admin' },
+    });
+
+    if (updateError) {
+      console.error('Error updating auth user password/confirmation:', updateError);
+      // Continue anyway since the user might already have the correct password
+    }
+
     // Get developer role ID and organization ID
     const { data: devRole, error: roleError } = await supabase
       .from('user_roles')
