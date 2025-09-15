@@ -10,6 +10,8 @@ import { TrackingPage } from "@/components/tracking/TrackingPage";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { OnboardingPage } from "@/components/auth/OnboardingPage";
+import { StatsPage } from "@/components/stats/StatsPage";
+import { TeamPage } from "@/components/team/TeamPage";
 
 interface UserRole {
   level: number;
@@ -113,7 +115,10 @@ export const AkitaApp = () => {
       <Routes>
         <Route path="/dashboard" element={<Dashboard user={user} onLogout={signOut} />} />
         <Route path="/sales" element={<SalesPage user={user} onLogout={signOut} />} />
+        <Route path="/sales/new" element={<SalesPage user={user} onLogout={signOut} />} />
         <Route path="/locations" element={<LocationsPage user={user} onLogout={signOut} />} />
+        <Route path="/stats" element={<StatsPage user={user} onLogout={signOut} />} />
+        <Route path="/team" element={<TeamPage user={user} onLogout={signOut} />} />
         <Route path="/tracking" element={<TrackingPage user={user} onLogout={signOut} />} />
         <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
         <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
@@ -141,7 +146,10 @@ export const AkitaApp = () => {
     <Routes>
       <Route path="/dashboard" element={<Dashboard user={user} onLogout={signOut} />} />
       <Route path="/sales" element={<SalesPage user={user} onLogout={signOut} />} />
+      <Route path="/sales/new" element={<SalesPage user={user} onLogout={signOut} />} />
       <Route path="/locations" element={<LocationsPage user={user} onLogout={signOut} />} />
+      <Route path="/stats" element={<StatsPage user={user} onLogout={signOut} />} />
+      <Route path="/team" element={<TeamPage user={user} onLogout={signOut} />} />
       <Route path="/tracking" element={<TrackingPage user={user} onLogout={signOut} />} />
       <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
       <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />

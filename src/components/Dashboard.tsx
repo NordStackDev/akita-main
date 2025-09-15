@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { AppLayout } from "@/components/AppLayout";
 import { InviteUserForm } from "@/components/admin/InviteUserForm";
+import { NavLink } from "react-router-dom";
 import { 
   BarChart3, 
   Users, 
@@ -123,32 +124,39 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   const quickActions = [
     {
-      title: "Ny Salg",
+      title: "Nyt Salg",
       description: "Registrer et nyt salg",
       icon: ShoppingCart,
       color: "akita-gradient",
-      href: "/sales/new"
+      href: "/app/sales/new"
     },
     {
       title: "Vælg Lokation",
       description: "Vælg din arbejdsplads",
       icon: MapPin,
       color: "bg-secondary",
-      href: "/locations"
+      href: "/app/locations"
     },
     {
       title: "Statistikker",
       description: "Se dine resultater",
       icon: BarChart3,
       color: "bg-secondary",
-      href: "/stats"
+      href: "/app/stats"
     },
     {
       title: "Team",
       description: "Se dit teams præstation",
       icon: Users,
       color: "bg-secondary",
-      href: "/team"
+      href: "/app/team"
+    },
+    {
+      title: "Sælger Tracking",
+      description: "Følg sælgernes aktivitet",
+      icon: Target,
+      color: "bg-secondary",
+      href: "/app/tracking"
     }
   ];
 
@@ -253,15 +261,17 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
           <h2 className="text-xl font-semibold text-foreground mb-4">Hurtige handlinger</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map((action, index) => (
-              <Card key={index} className="akita-card border-border hover:akita-glow akita-transition cursor-pointer">
-                <CardContent className="p-6">
-                  <div className={`w-12 h-12 rounded-lg ${action.color} flex items-center justify-center mb-4`}>
-                    <action.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">{action.title}</h3>
-                  <p className="text-sm text-muted-foreground">{action.description}</p>
-                </CardContent>
-              </Card>
+              <NavLink to={action.href} key={index} className="block focus:outline-none" aria-label={action.title}>
+                <Card className="akita-card border-border hover:akita-glow akita-transition">
+                  <CardContent className="p-6">
+                    <div className={`w-12 h-12 rounded-lg ${action.color} flex items-center justify-center mb-4`}>
+                      <action.icon className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-2">{action.title}</h3>
+                    <p className="text-sm text-muted-foreground">{action.description}</p>
+                  </CardContent>
+                </Card>
+              </NavLink>
             ))}
           </div>
         </div>
@@ -306,9 +316,11 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 <div className="text-center py-8">
                   <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">Ingen salg endnu</p>
-                  <Button className="mt-4 akita-gradient">
-                    Registrer dit første salg
-                  </Button>
+                  <NavLink to="/app/sales/new">
+                    <Button className="mt-4 akita-gradient">
+                      Registrer dit første salg
+                    </Button>
+                  </NavLink>
                 </div>
               )}
             </CardContent>

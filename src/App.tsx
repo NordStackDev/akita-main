@@ -20,6 +20,16 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/app" replace />} />
             <Route path="/dev" element={<DevSetup />} />
+            {/* Legacy top-level routes redirect to /app/* */}
+            <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="/sales" element={<Navigate to="/app/sales" replace />} />
+            <Route path="/sales/new" element={<Navigate to="/app/sales/new" replace />} />
+            <Route path="/locations" element={<Navigate to="/app/locations" replace />} />
+            <Route path="/tracking" element={<Navigate to="/app/tracking" replace />} />
+            <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+            <Route path="/stats" element={<Navigate to="/app/stats" replace />} />
+            <Route path="/team" element={<Navigate to="/app/team" replace />} />
+
             <Route path="/app/*" element={<AkitaApp />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
