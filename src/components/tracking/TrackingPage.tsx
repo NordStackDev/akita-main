@@ -9,11 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface TrackingPageProps {
-  user: any;
-  onLogout: () => void;
-}
+// No props needed - user data comes from context
 
 interface SalespersonData {
   id: string;
@@ -37,12 +35,13 @@ interface SalespersonData {
   weekSales?: number;
 }
 
-export const TrackingPage = ({ user, onLogout }: TrackingPageProps) => {
+export const TrackingPage = () => {
   const [loading, setLoading] = useState(false);
   const [salespeople, setSalespeople] = useState<SalespersonData[]>([]);
   const [selectedPerson, setSelectedPerson] = useState<SalespersonData | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadSalespeople();
@@ -58,7 +57,7 @@ export const TrackingPage = ({ user, onLogout }: TrackingPageProps) => {
           role_id,
           user_roles!inner(level, name)
         `)
-        .eq('id', user.id)
+        .eq('id', user!.id)
         .single();
 
       if (roleError) throw roleError;
@@ -130,7 +129,7 @@ export const TrackingPage = ({ user, onLogout }: TrackingPageProps) => {
     const { data } = await supabase
       .from('users')
       .select('organization_id')
-      .eq('id', user.id)
+      .eq('id', user!.id)
       .single();
     return data?.organization_id;
   };

@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Navigation } from "@/components/Navigation";
 import { 
   MapPin, 
   Plus, 
@@ -19,10 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-interface LocationsPageProps {
-  user: any;
-  onLogout: () => void;
-}
+// No props needed - user data comes from context
 
 interface Location {
   id: string;
@@ -42,7 +38,7 @@ interface Standplace {
   best_time: string;
 }
 
-export const LocationsPage = ({ user, onLogout }: LocationsPageProps) => {
+export const LocationsPage = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -133,20 +129,14 @@ export const LocationsPage = ({ user, onLogout }: LocationsPageProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation user={user} onLogout={onLogout} />
-        <div className="container mx-auto px-4 py-6 text-center">
-          <p className="text-muted-foreground">Indlæser lokationer...</p>
-        </div>
+      <div className="container mx-auto px-4 py-6 text-center">
+        <p className="text-muted-foreground">Indlæser lokationer...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation user={user} onLogout={onLogout} />
-      
-      <main className="container mx-auto px-4 py-6">
+    <main className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
@@ -340,6 +330,5 @@ export const LocationsPage = ({ user, onLogout }: LocationsPageProps) => {
           </CardContent>
         </Card>
       </main>
-    </div>
   );
 };

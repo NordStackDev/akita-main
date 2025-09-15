@@ -8,14 +8,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, User, Phone, Calendar, MapPin, CreditCard, Camera, Save } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AppLayout } from "@/components/AppLayout";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface SettingsPageProps {
-  user: any;
-  onLogout: () => void;
-}
+// No props needed - using sidebar layout
 
-export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
+export const SettingsPage = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -38,7 +36,9 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
   });
 
   useEffect(() => {
-    loadUserData();
+    if (user) {
+      loadUserData();
+    }
   }, [user]);
 
   const loadUserData = async () => {
@@ -46,7 +46,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
       const { data: userInfo, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', user!.id)
         .single();
 
       if (userError) throw userError;
@@ -54,7 +54,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
       const { data: profileInfo, error: profileError } = await supabase
         .from('profiles')
         .select('profile_image_url')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .single();
 
       if (userInfo) {
@@ -108,7 +108,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
       // Upload new profile image if provided
       if (profileImage) {
         const fileExt = profileImage.name.split('.').pop();
-        const fileName = `${user.id}/${user.id}-${Math.random()}.${fileExt}`;
+        const fileName = `${user!.id}/${user!.id}-${Math.random()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('avatars')
@@ -133,7 +133,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
           phone: profileData.phone,
           birth_date: profileData.birthDate || null
         })
-        .eq('id', user.id);
+        .eq('id', user!.id);
 
       if (userError) throw userError;
 
@@ -142,7 +142,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
         await supabase
           .from('profiles')
           .update({ profile_image_url: profileImageUrl })
-          .eq('user_id', user.id);
+          .eq('user_id', user!.id);
       }
 
       toast({
@@ -174,7 +174,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
           bank_account_number: bankData.bankAccount,
           bank_reg_number: bankData.bankRegNumber
         })
-        .eq('id', user.id);
+        .eq('id', user!.id);
 
       if (error) throw error;
 
@@ -209,8 +209,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
   }
 
   return (
-    <AppLayout user={user} onLogout={onLogout}>
-      <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Indstillinger</h1>
           <p className="text-muted-foreground">Administrer din profil og indstillinger</p>
@@ -416,6 +415,5 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
   );
 };

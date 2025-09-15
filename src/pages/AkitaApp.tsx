@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { OnboardingPage } from "@/components/auth/OnboardingPage";
 import { StatsPage } from "@/components/stats/StatsPage";
 import { TeamPage } from "@/components/team/TeamPage";
+import { AppLayout } from "@/components/AppLayout";
 
 interface UserRole {
   level: number;
@@ -112,49 +113,56 @@ export const AkitaApp = () => {
   // Developer gets access to everything
   if (userRole && userRole.name === 'developer') {
     return (
-      <Routes>
-        <Route path="/dashboard" element={<Dashboard user={user} onLogout={signOut} />} />
-        <Route path="/sales" element={<SalesPage user={user} onLogout={signOut} />} />
-        <Route path="/sales/new" element={<SalesPage user={user} onLogout={signOut} />} />
-        <Route path="/locations" element={<LocationsPage user={user} onLogout={signOut} />} />
-        <Route path="/stats" element={<StatsPage user={user} onLogout={signOut} />} />
-        <Route path="/team" element={<TeamPage user={user} onLogout={signOut} />} />
-        <Route path="/tracking" element={<TrackingPage user={user} onLogout={signOut} />} />
-        <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
-        <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
-        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
-      </Routes>
+      <AppLayout user={user} onLogout={signOut}>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/sales" element={<SalesPage />} />
+          <Route path="/sales/new" element={<SalesPage />} />
+          <Route path="/locations" element={<LocationsPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/team" element={<TeamPage />} />
+          <Route path="/tracking" element={<TrackingPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+        </Routes>
+      </AppLayout>
     );
   }
 
   // Show sales interface for sellers (levels 6-8) 
   if (userRole && userRole.level >= 6) {
     return (
-      <Routes>
-        <Route path="/sales" element={<SalesApp user={user} onLogout={signOut} />} />
-        <Route path="/sales/new" element={<SalesPage user={user} onLogout={signOut} />} />
-        <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
-        <Route path="/" element={<Navigate to="/app/sales" replace />} />
-        <Route path="*" element={<Navigate to="/app/sales" replace />} />
-      </Routes>
+      <AppLayout user={user} onLogout={signOut}>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/sales" element={<SalesApp />} />
+          <Route path="/sales/new" element={<SalesPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+        </Routes>
+      </AppLayout>
     );
   }
 
   // Show admin dashboard for higher levels (0-5: developer, admin, CEO, direktør, chef, leder)
   return (
-    <Routes>
-      <Route path="/dashboard" element={<Dashboard user={user} onLogout={signOut} />} />
-      <Route path="/sales" element={<SalesPage user={user} onLogout={signOut} />} />
-      <Route path="/sales/new" element={<SalesPage user={user} onLogout={signOut} />} />
-      <Route path="/locations" element={<LocationsPage user={user} onLogout={signOut} />} />
-      <Route path="/stats" element={<StatsPage user={user} onLogout={signOut} />} />
-      <Route path="/team" element={<TeamPage user={user} onLogout={signOut} />} />
-      <Route path="/tracking" element={<TrackingPage user={user} onLogout={signOut} />} />
-      <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
-      <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
-    </Routes>
+    <AppLayout user={user} onLogout={signOut}>
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/sales" element={<SalesPage />} />
+        <Route path="/sales/new" element={<SalesPage />} />
+        <Route path="/locations" element={<LocationsPage />} />
+        <Route path="/stats" element={<StatsPage />} />
+        <Route path="/team" element={<TeamPage />} />
+        <Route path="/tracking" element={<TrackingPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+      </Routes>
+    </AppLayout>
   );
 };

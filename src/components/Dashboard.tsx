@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { AppLayout } from "@/components/AppLayout";
 import { InviteUserForm } from "@/components/admin/InviteUserForm";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   BarChart3, 
   Users, 
@@ -27,10 +27,7 @@ interface User {
   };
 }
 
-interface DashboardProps {
-  user: User;
-  onLogout: () => void;
-}
+// No props needed - using sidebar layout
 
 interface DashboardData {
   salesCount: number;
@@ -43,7 +40,8 @@ interface DashboardData {
   organizationId: string | null;
 }
 
-export const Dashboard = ({ user, onLogout }: DashboardProps) => {
+export const Dashboard = () => {
+  const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     salesCount: 0,
     totalPoints: 0,
@@ -161,8 +159,8 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   ];
 
   const userName = dashboardData.userProfile?.user?.name || 
-                   user.user_metadata?.first_name || 
-                   user.email?.split('@')[0] || 
+                   user?.user_metadata?.first_name || 
+                   user?.email?.split('@')[0] || 
                    'Bruger';
 
   if (loading) {
@@ -179,8 +177,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   }
 
   return (
-    <AppLayout user={user} onLogout={onLogout}>
-      <div className="p-6">
+    <div className="p-6">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -352,6 +349,5 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
           </Card>
         </div>
       </div>
-    </AppLayout>
   );
 };

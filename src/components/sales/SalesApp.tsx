@@ -7,18 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Menu, MapPin, Trophy, Target, Star, Settings, LogOut, ArrowRightCircle, Lock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { User } from '@supabase/supabase-js';
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserData {
   first_name?: string;
   last_name?: string;
 }
 
-interface SalesAppProps {
-  user: User;
-  onLogout: () => void;
-}
+// No props needed - user data comes from context
 
 interface Location {
   id: string;
@@ -32,7 +29,7 @@ interface TopSeller {
   rank: number;
 }
 
-export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
+export const SalesApp = () => {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [lockedLocationId, setLockedLocationId] = useState<string | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
@@ -43,10 +40,13 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, signOut: onLogout } = useAuth();
 
   useEffect(() => {
-    loadData();
-  }, [user.id]);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
   const loadData = async () => {
     try {
@@ -54,7 +54,7 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
       const { data: userDataResult, error: userError } = await supabase
         .from('users')
         .select('first_name, last_name')
-        .eq('id', user.id)
+        .eq('id', user!.id)
         .single();
 
       if (userError) {
@@ -64,7 +64,7 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
       }
 
       // Check if user has a locked location from ongoing sale
-      const savedLock = localStorage.getItem(`sales_location_lock_${user.id}`);
+      const savedLock = localStorage.getItem(`sales_location_lock_${user!.id}`);
       if (savedLock) {
         const lockData = JSON.parse(savedLock);
         const lockTime = new Date(lockData.timestamp);
@@ -74,7 +74,7 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
           setLockedLocationId(lockData.locationId);
           setSelectedLocation(lockData.locationId);
         } else {
-          localStorage.removeItem(`sales_location_lock_${user.id}`);
+          localStorage.removeItem(`sales_location_lock_${user!.id}`);
         }
       }
 
@@ -93,7 +93,7 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
       const { data: salesData, error: salesError } = await supabase
         .from('sales')
         .select('points')
-        .eq('user_id', user.id);
+        .eq('user_id', user!.id);
 
       if (salesError) {
         console.error('Error loading user points:', salesError);
@@ -161,7 +161,7 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
       locationId: selectedLocation,
       timestamp: new Date().toISOString()
     };
-    localStorage.setItem(`sales_location_lock_${user.id}`, JSON.stringify(lockData));
+    localStorage.setItem(`sales_location_lock_${user!.id}`, JSON.stringify(lockData));
     setLockedLocationId(selectedLocation);
 
     toast({
@@ -173,7 +173,7 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
   };
 
   const handleUnlockLocation = () => {
-    localStorage.removeItem(`sales_location_lock_${user.id}`);
+    localStorage.removeItem(`sales_location_lock_${user!.id}`);
     setLockedLocationId(null);
     toast({
       title: "Lokation frigivet",

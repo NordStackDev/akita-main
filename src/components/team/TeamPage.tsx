@@ -1,17 +1,10 @@
-import { AppLayout } from "@/components/AppLayout";
+// No props needed - using sidebar layout
 
-interface TeamPageProps {
-  user: any;
-  onLogout: () => void;
-}
-
-export const TeamPage = ({ user, onLogout }: TeamPageProps) => {
+export const TeamPage = () => {
   return (
-    <AppLayout user={user} onLogout={onLogout}>
-      <div className="p-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Team</h1>
-        <p className="text-muted-foreground">Oversigt over team og rangeringer. (Kommer snart)</p>
-      </div>
-    </AppLayout>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold text-foreground mb-2">Team</h1>
+      <p className="text-muted-foreground">Oversigt over team og rangeringer. (Kommer snart)</p>
+    </div>
   );
 };

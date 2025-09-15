@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { Navigation } from "@/components/Navigation";
 import { 
   User, 
   Phone, 
@@ -19,11 +18,9 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface SalesPageProps {
-  user: any;
-  onLogout: () => void;
-}
+// No props needed - using sidebar layout
 
 interface Customer {
   firstName: string;
@@ -43,7 +40,7 @@ interface Product {
   points_value: number;
 }
 
-export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
+export const SalesPage = () => {
   const [customer, setCustomer] = useState<Customer>({
     firstName: '',
     lastName: '',
@@ -63,8 +60,11 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
   const [lockedLocation, setLockedLocation] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) return;
+    
     // Check if user has a locked location for the sale
     const savedLock = localStorage.getItem(`sales_location_lock_${user.id}`);
     if (!savedLock) {
@@ -94,7 +94,7 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
 
     setLockedLocation(lockData.locationId);
     fetchProducts();
-  }, [user.id, navigate, toast]);
+  }, [user, navigate, toast]);
 
   const fetchProducts = async () => {
     try {
@@ -125,7 +125,7 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
       setStep(step - 1);
     } else {
       // Cancel sale - unlock location
-      localStorage.removeItem(`sales_location_lock_${user.id}`);
+      localStorage.removeItem(`sales_location_lock_${user!.id}`);
       toast({
         title: "Salg annulleret",
         description: "Lokation er frigivet",
@@ -170,7 +170,7 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
       const { error: salesError } = await supabase
         .from('sales')
         .insert({
-          user_id: user.id,
+          user_id: user!.id,
           customer_id: customerData.id,
           product_id: selectedProduct,
           location_id: lockedLocation,
@@ -192,7 +192,7 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
       }
 
       // Unlock location after successful sale
-      localStorage.removeItem(`sales_location_lock_${user.id}`);
+      localStorage.removeItem(`sales_location_lock_${user!.id}`);
 
       toast({
         title: "Salg registreret! 🎉",
@@ -212,10 +212,7 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation user={user} onLogout={onLogout} />
-      
-      <main className="container mx-auto px-4 py-6">
+    <main className="container mx-auto px-4 py-6">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="flex items-center mb-6">
@@ -516,6 +513,5 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
           )}
         </div>
       </main>
-    </div>
   );
 };
