@@ -101,8 +101,7 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
         
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, profileImage);
-
+          .upload(fileName, profileImage, { upsert: true });
         if (uploadError) {
           console.error('Image upload error:', uploadError);
           toast({
@@ -126,7 +125,7 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
           last_name: formData.lastName,
           name: `${formData.firstName} ${formData.lastName}`,
           phone: formData.phone,
-          birth_date: formData.birthDate,
+          birth_date: formData.birthDate || null,
           first_login_completed: true,
           force_password_reset: false
         })
@@ -139,7 +138,7 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
           first_name: formData.firstName,
           last_name: formData.lastName,
           contact_number: formData.phone,
-          birth_date: formData.birthDate,
+          birth_date: formData.birthDate || null,
           postal_code: formData.postalCode,
           city: formData.city
         })

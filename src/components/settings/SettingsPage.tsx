@@ -130,7 +130,7 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
           last_name: profileData.lastName,
           name: `${profileData.firstName} ${profileData.lastName}`,
           phone: profileData.phone,
-          birth_date: profileData.birthDate
+          birth_date: profileData.birthDate || null
         })
         .eq('id', user.id);
 
