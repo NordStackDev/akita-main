@@ -63,6 +63,21 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
         setUserData(userDataResult || {});
       }
 
+      // Check if user has a locked location from ongoing sale
+      const savedLock = localStorage.getItem(`sales_location_lock_${user.id}`);
+      if (savedLock) {
+        const lockData = JSON.parse(savedLock);
+        const lockTime = new Date(lockData.timestamp);
+        const now = new Date();
+        // Lock expires after 2 hours
+        if (now.getTime() - lockTime.getTime() < 2 * 60 * 60 * 1000) {
+          setLockedLocationId(lockData.locationId);
+          setSelectedLocation(lockData.locationId);
+        } else {
+          localStorage.removeItem(`sales_location_lock_${user.id}`);
+        }
+      }
+
       // Load locations
       const { data: locationsData, error: locationsError } = await supabase
         .from('locations')
@@ -131,6 +146,41 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
     }
   };
 
+  const handleStartSale = () => {
+    if (!selectedLocation) {
+      toast({
+        variant: "destructive",
+        title: "Vælg lokation",
+        description: "Du skal vælge en lokation før du kan starte et salg",
+      });
+      return;
+    }
+
+    // Lock the location
+    const lockData = {
+      locationId: selectedLocation,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem(`sales_location_lock_${user.id}`, JSON.stringify(lockData));
+    setLockedLocationId(selectedLocation);
+
+    toast({
+      title: "Lokation låst",
+      description: "Du kan nu registrere et salg",
+    });
+
+    navigate('/app/sales/new');
+  };
+
+  const handleUnlockLocation = () => {
+    localStorage.removeItem(`sales_location_lock_${user.id}`);
+    setLockedLocationId(null);
+    toast({
+      title: "Lokation frigivet",
+      description: "Du kan nu vælge en ny lokation",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -180,9 +230,13 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
         {/* Location Selector */}
         <Card className="akita-card">
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-3">
               <MapPin className="h-5 w-5 text-muted-foreground" />
-              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <Select 
+                value={selectedLocation} 
+                onValueChange={setSelectedLocation}
+                disabled={!!lockedLocationId}
+              >
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Vælg lokation" />
                 </SelectTrigger>
@@ -195,6 +249,32 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
                 </SelectContent>
               </Select>
             </div>
+            
+            {lockedLocationId && (
+              <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
+                <Lock className="h-4 w-4 text-destructive" />
+                <span className="text-sm text-muted-foreground flex-1">
+                  Lokation er låst for aktivt salg
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleUnlockLocation}
+                >
+                  Frigiv
+                </Button>
+              </div>
+            )}
+            
+            {selectedLocation && !lockedLocationId && (
+              <Button 
+                onClick={handleStartSale}
+                className="w-full mt-2 akita-gradient hover:akita-glow"
+              >
+                <ArrowRightCircle className="mr-2 h-4 w-4" />
+                Start nyt salg på denne lokation
+              </Button>
+            )}
           </CardContent>
         </Card>
 

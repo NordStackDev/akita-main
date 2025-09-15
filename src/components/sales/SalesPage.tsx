@@ -60,12 +60,41 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [lockedLocation, setLockedLocation] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if user has a locked location for the sale
+    const savedLock = localStorage.getItem(`sales_location_lock_${user.id}`);
+    if (!savedLock) {
+      toast({
+        variant: "destructive",
+        title: "Ingen aktiv lokation",
+        description: "Du skal først vælge og låse en lokation",
+      });
+      navigate('/app/sales');
+      return;
+    }
+
+    const lockData = JSON.parse(savedLock);
+    const lockTime = new Date(lockData.timestamp);
+    const now = new Date();
+    // Check if lock has expired (2 hours)
+    if (now.getTime() - lockTime.getTime() >= 2 * 60 * 60 * 1000) {
+      localStorage.removeItem(`sales_location_lock_${user.id}`);
+      toast({
+        variant: "destructive",
+        title: "Lokation udløbet",
+        description: "Din lokationslås er udløbet. Vælg lokation igen.",
+      });
+      navigate('/app/sales');
+      return;
+    }
+
+    setLockedLocation(lockData.locationId);
     fetchProducts();
-  }, []);
+  }, [user.id, navigate, toast]);
 
   const fetchProducts = async () => {
     try {
@@ -95,7 +124,13 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
     if (step > 1) {
       setStep(step - 1);
     } else {
-      navigate('/app/dashboard');
+      // Cancel sale - unlock location
+      localStorage.removeItem(`sales_location_lock_${user.id}`);
+      toast({
+        title: "Salg annulleret",
+        description: "Lokation er frigivet",
+      });
+      navigate('/app/sales');
     }
   };
 
@@ -138,6 +173,7 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
           user_id: user.id,
           customer_id: customerData.id,
           product_id: selectedProduct,
+          location_id: lockedLocation,
           points: selectedProductData?.points_value || 0,
           customer_gender: customer.gender,
           customer_age: customer.birthDate ? new Date().getFullYear() - new Date(customer.birthDate).getFullYear() : null,
@@ -154,6 +190,9 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
           current_provider: 'Ukendt'
         });
       }
+
+      // Unlock location after successful sale
+      localStorage.removeItem(`sales_location_lock_${user.id}`);
 
       toast({
         title: "Salg registreret! 🎉",
@@ -457,19 +496,8 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
                 <div className="space-y-4">
                   <Button 
                     onClick={() => {
-                      setStep(1);
-                      setCustomer({
-                        firstName: '',
-                        lastName: '',
-                        email: '',
-                        phone: '',
-                        postalCode: '',
-                        city: '',
-                        birthDate: '',
-                        gender: '',
-                        customerType: 'mobile'
-                      });
-                      setSelectedProduct('');
+                      // Need to have location lock to start new sale
+                      navigate('/app/sales');
                     }}
                     className="w-full akita-gradient hover:akita-glow"
                   >
@@ -477,10 +505,10 @@ export const SalesPage = ({ user, onLogout }: SalesPageProps) => {
                   </Button>
                   <Button 
                     variant="outline" 
-                    onClick={() => navigate('/app/dashboard')}
+                    onClick={() => navigate('/app/sales')}
                     className="w-full"
                   >
-                    Tilbage til dashboard
+                    Tilbage til salgsapp
                   </Button>
                 </div>
               </CardContent>
