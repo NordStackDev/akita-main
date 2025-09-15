@@ -31,6 +31,7 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
           title: "Ikke autoriseret",
           description: "Du skal være logget ind for at sende invitationer",
         });
+        setLoading(false);
         return;
       }
 
@@ -47,10 +48,11 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
 
       if (error) {
         console.error('Error sending invitation:', error);
+        const message = (error as any)?.message || 'Kunne ikke sende invitation. Prøv igen.';
         toast({
           variant: "destructive",
           title: "Fejl ved invitation",
-          description: "Kunne ikke sende invitation. Prøv igen.",
+          description: message,
         });
         return;
       }
@@ -75,11 +77,26 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
       }
     } catch (error: any) {
       console.error('Error sending invitation:', error);
-      toast({
-        variant: "destructive",
-        title: "Fejl ved invitation",
-        description: "Der opstod en uventet fejl",
-      });
+      try {
+        const ctx = (error as any)?.context;
+        let details: string | undefined;
+        if (ctx && typeof ctx.text === 'function') {
+          details = await ctx.text();
+        } else if ((error as any)?.message) {
+          details = (error as any).message;
+        }
+        toast({
+          variant: "destructive",
+          title: "Fejl ved invitation",
+          description: details || "Der opstod en uventet fejl",
+        });
+      } catch {
+        toast({
+          variant: "destructive",
+          title: "Fejl ved invitation",
+          description: "Der opstod en uventet fejl",
+        });
+      }
     } finally {
       setLoading(false);
     }
