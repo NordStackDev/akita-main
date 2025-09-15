@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, User, Lock, Phone, Calendar, Upload, Camera } from "lucide-react";
+import { Loader2, User, Lock, Phone, Calendar, Upload, Camera, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -20,10 +20,11 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
     lastName: '',
     phone: '',
     birthDate: '',
+    address: '',
+    postalCode: '',
+    city: '',
     password: '',
-    confirmPassword: '',
-    bankAccount: '',
-    bankRegNumber: ''
+    confirmPassword: ''
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
@@ -126,12 +127,23 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
           name: `${formData.firstName} ${formData.lastName}`,
           phone: formData.phone,
           birth_date: formData.birthDate,
-          bank_account_number: formData.bankAccount,
-          bank_reg_number: formData.bankRegNumber,
           first_login_completed: true,
           force_password_reset: false
         })
         .eq('id', user.id);
+
+      // Update customer record if exists (for address info)
+      await supabase
+        .from('customers')
+        .update({
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          contact_number: formData.phone,
+          birth_date: formData.birthDate,
+          postal_code: formData.postalCode,
+          city: formData.city
+        })
+        .eq('email', user.email);
 
       // Update profile with image if uploaded
       if (profileImageUrl) {
@@ -320,41 +332,58 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
               </div>
             </div>
 
-            {/* Bank Information */}
+            {/* Address Information */}
             <div className="space-y-4 pt-4 border-t border-border">
-              <h3 className="font-semibold text-foreground">Bankoplysninger (valgfrit)</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="bankRegNumber" className="text-sm font-medium">
-                    Reg. nummer
-                  </Label>
+              <h3 className="font-semibold text-foreground">Adresse oplysninger</h3>
+              <div>
+                <Label htmlFor="address" className="text-sm font-medium">
+                  Adresse *
+                </Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="bankRegNumber"
+                    id="address"
                     type="text"
-                    value={formData.bankRegNumber}
-                    onChange={(e) => setFormData({...formData, bankRegNumber: e.target.value})}
-                    className="bg-input border-border"
-                    placeholder="1234"
-                    maxLength={4}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bankAccount" className="text-sm font-medium">
-                    Kontonummer
-                  </Label>
-                  <Input
-                    id="bankAccount"
-                    type="text"
-                    value={formData.bankAccount}
-                    onChange={(e) => setFormData({...formData, bankAccount: e.target.value})}
-                    className="bg-input border-border"
-                    placeholder="1234567890"
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    className="pl-10 bg-input border-border"
+                    placeholder="Din adresse"
+                    required
                   />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Bankoplysninger bruges til udbetaling af løn og provision
-              </p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="postalCode" className="text-sm font-medium">
+                    Postnummer *
+                  </Label>
+                  <Input
+                    id="postalCode"
+                    type="text"
+                    value={formData.postalCode}
+                    onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
+                    className="bg-input border-border"
+                    placeholder="1234"
+                    maxLength={4}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="city" className="text-sm font-medium">
+                    By *
+                  </Label>
+                  <Input
+                    id="city"
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({...formData, city: e.target.value})}
+                    className="bg-input border-border"
+                    placeholder="København"
+                    required
+                  />
+                </div>
+              </div>
             </div>
 
             <Button 

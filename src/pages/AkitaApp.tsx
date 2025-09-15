@@ -5,6 +5,8 @@ import { Dashboard } from "@/components/Dashboard";
 import { SalesApp } from "@/components/sales/SalesApp";
 import { SalesPage } from "@/components/sales/SalesPage";
 import { LocationsPage } from "@/components/locations/LocationsPage";
+import { SettingsPage } from "@/components/settings/SettingsPage";
+import { TrackingPage } from "@/components/tracking/TrackingPage";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -68,7 +70,14 @@ export const AkitaApp = () => {
 
   // Show sales interface for sellers (levels 6-8) 
   if (userRole && userRole.level >= 6) {
-    return <SalesApp user={user} onLogout={signOut} />;
+    return (
+      <Routes>
+        <Route path="/sales" element={<SalesApp user={user} onLogout={signOut} />} />
+        <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
+        <Route path="/" element={<Navigate to="/app/sales" replace />} />
+        <Route path="*" element={<Navigate to="/app/sales" replace />} />
+      </Routes>
+    );
   }
 
   // Show admin dashboard for higher levels (0-5: developer, admin, CEO, direktør, chef, leder)
@@ -77,6 +86,8 @@ export const AkitaApp = () => {
       <Route path="/dashboard" element={<Dashboard user={user} onLogout={signOut} />} />
       <Route path="/sales" element={<SalesPage user={user} onLogout={signOut} />} />
       <Route path="/locations" element={<LocationsPage user={user} onLogout={signOut} />} />
+      <Route path="/tracking" element={<TrackingPage user={user} onLogout={signOut} />} />
+      <Route path="/settings" element={<SettingsPage user={user} onLogout={signOut} />} />
       <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
       <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/app/dashboard" replace />} />

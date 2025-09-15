@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,9 +18,11 @@ import {
   LogOut,
   User,
   Menu,
-  X
+  X,
+  Target
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavigationProps {
   user: any;
@@ -29,8 +31,34 @@ interface NavigationProps {
 
 export const Navigation = ({ user, onLogout }: NavigationProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState<{ level: number } | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    loadUserRole();
+  }, [user]);
+
+  const loadUserRole = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select(`
+          role_id,
+          user_roles!inner(level)
+        `)
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading user role:', error);
+      } else {
+        setUserRole({ level: data.user_roles.level });
+      }
+    } catch (error) {
+      console.error('Error loading user role:', error);
+    }
+  };
 
   const navigationItems = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -38,6 +66,8 @@ export const Navigation = ({ user, onLogout }: NavigationProps) => {
     { name: "Lokationer", href: "/locations", icon: MapPin },
     { name: "Statistikker", href: "/stats", icon: BarChart3 },
     { name: "Team", href: "/team", icon: Users },
+    // Show tracking only for teamlead and above (level <= 5)
+    ...(userRole && userRole.level <= 5 ? [{ name: "Sælger Tracking", href: "/tracking", icon: Target }] : []),
   ];
 
   const userName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Bruger';

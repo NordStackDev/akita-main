@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, MapPin, Trophy, Target, Star } from "lucide-react";
+import { Menu, MapPin, Trophy, Target, Star, Settings, LogOut } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from '@supabase/supabase-js';
+import { useNavigate } from "react-router-dom";
 
 interface UserData {
   first_name?: string;
@@ -40,6 +41,7 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
   const [topSellers, setTopSellers] = useState<TopSeller[]>([]);
   const [showMenu, setShowMenu] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
@@ -151,7 +153,23 @@ export const SalesApp = ({ user, onLogout }: SalesAppProps) => {
       {/* Menu Dropdown */}
       {showMenu && (
         <div className="bg-card border-b border-border p-4 space-y-2">
-          <Button variant="ghost" className="w-full justify-start" onClick={onLogout}>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start" 
+            onClick={() => {
+              navigate('/app/settings');
+              setShowMenu(false);
+            }}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Indstillinger
+          </Button>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start" 
+            onClick={onLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
             Log ud
           </Button>
         </div>
