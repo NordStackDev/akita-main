@@ -1693,6 +1693,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_developer_user: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_invitation_code: {
         Args: Record<PropertyKey, never>
         Returns: string
