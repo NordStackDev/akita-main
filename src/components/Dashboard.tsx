@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Navigation } from "@/components/Navigation";
+import { AppLayout } from "@/components/AppLayout";
 import { InviteUserForm } from "@/components/admin/InviteUserForm";
 import { 
   BarChart3, 
@@ -171,10 +171,8 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation user={user} onLogout={onLogout} />
-      
-      <main className="container mx-auto px-4 py-6">
+    <AppLayout user={user} onLogout={onLogout}>
+      <div className="p-6">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -341,7 +339,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 };

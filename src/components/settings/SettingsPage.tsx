@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, User, Phone, Calendar, MapPin, CreditCard, Camera, Save } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AppLayout } from "@/components/AppLayout";
 
 interface SettingsPageProps {
   user: any;
@@ -208,8 +209,8 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto">
+    <AppLayout user={user} onLogout={onLogout}>
+      <div className="p-6 max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Indstillinger</h1>
           <p className="text-muted-foreground">Administrer din profil og indstillinger</p>
@@ -415,6 +416,6 @@ export const SettingsPage = ({ user, onLogout }: SettingsPageProps) => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AppLayout>
   );
 };
