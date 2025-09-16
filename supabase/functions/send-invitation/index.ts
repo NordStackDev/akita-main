@@ -53,6 +53,29 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Resolve organization id (fallback to inviter's organization if not provided)
+    let targetOrganizationId = (organizationId && organizationId.trim() !== '') ? organizationId : null;
+    if (!targetOrganizationId) {
+      const { data: inviterProfile, error: inviterProfileError } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (inviterProfileError) {
+        console.error('Error fetching inviter profile:', inviterProfileError);
+      }
+
+      if (!inviterProfile?.organization_id) {
+        return new Response(JSON.stringify({ error: 'Missing organization id. Provide organizationId or ensure inviter profile has organization_id.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      targetOrganizationId = inviterProfile.organization_id;
+    }
+
     // Generate invitation code
     const { data: codeData, error: codeError } = await supabase
       .rpc('generate_invitation_code');
@@ -87,22 +110,41 @@ const handler = async (req: Request): Promise<Response> => {
     // Create user account with temporary password
     const temporaryPassword = `temp_${invitationCode}_${Date.now()}`;
     
-    // Get role ID by name - handle case insensitive lookup
-    const { data: targetRole, error: roleError } = await supabase
-      .from('user_roles')
-      .select('id, name')
-      .ilike('name', role)
-      .single();
+    // Normalize and resolve target role id robustly (handle aliases and duplicates)
+    const normalizedRole = (role || '').toLowerCase().trim();
+    const roleAliases: Record<string, string> = {
+      sales: 'seller',
+      sælger: 'seller',
+      salesman: 'seller',
+      salesperson: 'seller',
+      ceo: 'ceo',
+      administrator: 'admin',
+    };
+    const lookupRole = roleAliases[normalizedRole] ?? normalizedRole;
 
-    if (roleError || !targetRole) {
-      console.error(`Error finding ${role} role:`, roleError);
-      return new Response(JSON.stringify({ error: `Role '${role}' not found` }), {
+    const { data: rolesList, error: roleQueryError } = await supabase
+      .from('user_roles')
+      .select('id, name, level')
+      .ilike('name', lookupRole)
+      .order('level', { ascending: true })
+      .limit(1);
+
+    if (roleQueryError) {
+      console.error(`Error querying role '${lookupRole}':`, roleQueryError);
+      return new Response(JSON.stringify({ error: `Failed to lookup role '${lookupRole}'` }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    
-    const targetRoleId = targetRole.id;
+
+    const targetRoleId = rolesList?.[0]?.id;
+    if (!targetRoleId) {
+      console.error(`Role not found for lookup '${lookupRole}' (original: '${role}')`);
+      return new Response(JSON.stringify({ error: `Role '${role}' not found. Please create it in user_roles.` }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
 // Create or update user account
 let targetUserId: string | null = null;
@@ -182,7 +224,7 @@ if (createUserError) {
         first_name: firstName,
         last_name: lastName,
         phone: phone || '',
-        organization_id: organizationId,
+        organization_id: targetOrganizationId,
         role_id: targetRoleId,
         first_login_completed: false,
         force_password_reset: true,
