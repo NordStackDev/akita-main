@@ -19,8 +19,9 @@ interface InvitationRequest {
   firstName: string;
   lastName: string;
   phone?: string;
+  companyName?: string;
   organizationId: string;
-  roleId?: string; // Optional role ID, defaults to 'Sælger'
+  role?: string; // Optional role name, defaults to 'seller'
   appUrl?: string; // Optional app URL to include in email link
 }
 
@@ -31,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, firstName, lastName, phone, organizationId, roleId, appUrl }: InvitationRequest = await req.json();
+    const { email, firstName, lastName, phone, companyName, organizationId, role = 'seller', appUrl }: InvitationRequest = await req.json();
 
     // Get auth user from header
     const authHeader = req.headers.get('Authorization');
@@ -86,26 +87,22 @@ const handler = async (req: Request): Promise<Response> => {
     // Create user account with temporary password
     const temporaryPassword = `temp_${invitationCode}_${Date.now()}`;
     
-    // Get role ID (either provided or default to 'Sælger')
-    let targetRoleId = roleId;
-    
-    if (!targetRoleId) {
-      // Get default role ID ('Sælger')
-      const { data: defaultRole, error: roleError } = await supabase
-        .from('user_roles')
-        .select('id')
-        .eq('name', 'Sælger')
-        .single();
+    // Get role ID by name
+    const { data: targetRole, error: roleError } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('name', role)
+      .single();
 
-      if (roleError || !defaultRole) {
-        console.error('Error finding Sælger role:', roleError);
-        return new Response(JSON.stringify({ error: 'Default role not found' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      targetRoleId = defaultRole.id;
+    if (roleError || !targetRole) {
+      console.error(`Error finding ${role} role:`, roleError);
+      return new Response(JSON.stringify({ error: `Role '${role}' not found` }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+    
+    const targetRoleId = targetRole.id;
 
 // Create or update user account
 let targetUserId: string | null = null;
@@ -119,7 +116,9 @@ const { data: newUser, error: createUserError } = await supabase.auth.admin.crea
     first_name: firstName,
     last_name: lastName,
     phone: phone || '',
+    company_name: companyName || '',
     invitation_code: invitationCode,
+    role: role,
   }
 });
 
@@ -151,7 +150,9 @@ if (createUserError) {
         first_name: firstName,
         last_name: lastName,
         phone: phone || '',
+        company_name: companyName || '',
         invitation_code: invitationCode,
+        role: role,
       }
     });
     if (updateErr) {
@@ -214,30 +215,43 @@ if (linkError) {
 const verifyLink = (linkData as any)?.properties?.action_link || (linkData as any)?.properties?.email_otp_link || (linkData as any)?.action_link || `${appOrigin}/app/auth`;
 
 // Send invitation email with verification link
+const isCEO = role === 'ceo';
 const emailResponse = await resend.emails.send({
   from: 'AKITA <noreply@resend.dev>',
   to: [email],
-  subject: 'Velkommen til AKITA – Bekræft din konto',
+  subject: isCEO ? '👑 CEO invitation til AKITA – Bekræft din konto' : 'Velkommen til AKITA – Bekræft din konto',
   html: `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, #ff0000, #cc0000); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">Velkommen til AKITA!</h1>
-        <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Din salgsplatform er klar til brug</p>
+        <h1 style="color: white; margin: 0; font-size: 28px;">
+          ${isCEO ? '👑 Du er inviteret som CEO til AKITA!' : 'Velkommen til AKITA!'}
+        </h1>
+        <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">
+          ${isCEO ? 'Opret din organisation og kom i gang' : 'Din salgsplatform er klar til brug'}
+        </p>
       </div>
       
       <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
         <h2 style="color: #333; margin-top: 0;">Hej ${firstName}!</h2>
         <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-          Du er blevet inviteret til AKITA. For at komme i gang skal du først bekræfte din email.
+          ${isCEO 
+            ? 'Du er blevet inviteret som CEO til AKITA platformen! Som CEO vil du kunne oprette og administrere din organisation efter bekræftelse.' 
+            : 'Du er blevet inviteret til AKITA. For at komme i gang skal du først bekræfte din email.'
+          }
         </p>
+        ${companyName ? `
+        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+          <strong>Firma:</strong> ${companyName}
+        </p>
+        ` : ''}
         <div style="text-align: center; margin: 30px 0;">
           <a href="${verifyLink}" 
              style="background: linear-gradient(135deg, #ff0000, #cc0000); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-            Bekræft din konto
+            ${isCEO ? 'Bekræft CEO konto' : 'Bekræft din konto'}
           </a>
         </div>
         <p style="color: #666; line-height: 1.6;">
-          Efter bekræftelse bliver du logget ind og bliver bedt om at oprette din egen adgangskode.
+          Efter bekræftelse bliver du logget ind og ${isCEO ? 'kan oprette din organisation' : 'bliver bedt om at oprette din egen adgangskode'}.
           Du kan derefter tilgå appen via <a href="${appOrigin}/app/auth">${appOrigin}/app/auth</a>.
         </p>
         <p style="color: #a00; line-height: 1.6; margin-top: 16px;">

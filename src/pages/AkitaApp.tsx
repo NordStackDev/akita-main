@@ -13,6 +13,7 @@ import { OnboardingPage } from "@/components/auth/OnboardingPage";
 import { StatsPage } from "@/components/stats/StatsPage";
 import { TeamPage } from "@/components/team/TeamPage";
 import { AppLayout } from "@/components/AppLayout";
+import { CEOOnboardingForm } from "@/components/ceo/CEOOnboardingForm";
 
 interface UserRole {
   level: number;
@@ -24,6 +25,7 @@ export const AkitaApp = () => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [roleLoading, setRoleLoading] = useState(true);
   const [onboardingRequired, setOnboardingRequired] = useState(false);
+  const [ceoOnboardingRequired, setCeoOnboardingRequired] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -48,6 +50,7 @@ export const AkitaApp = () => {
           first_login_completed,
           force_password_reset,
           role_id,
+          organization_id,
           user_roles!inner(level, name)
         `)
         .eq('id', user!.id)
@@ -62,7 +65,13 @@ export const AkitaApp = () => {
           level: data.user_roles.level,
           name: data.user_roles.name 
         });
-        setOnboardingRequired(Boolean(data.force_password_reset) || !Boolean(data.first_login_completed));
+        
+        // Check if CEO needs special onboarding (create organization)
+        if (data.user_roles.name === 'ceo' && (!data.organization_id || !data.first_login_completed)) {
+          setCeoOnboardingRequired(true);
+        } else {
+          setOnboardingRequired(Boolean(data.force_password_reset) || !Boolean(data.first_login_completed));
+        }
       } else {
         // If no user row yet, force onboarding to collect basics
         setOnboardingRequired(true);
@@ -94,6 +103,15 @@ export const AkitaApp = () => {
         <Route path="*" element={<Navigate to="/app/auth" replace />} />
       </Routes>
     );
+  }
+
+  // CEO onboarding flow (create organization)
+  if (ceoOnboardingRequired) {
+    const handleCeoOnboardingComplete = () => {
+      setCeoOnboardingRequired(false);
+      loadUserRole();
+    };
+    return <CEOOnboardingForm onComplete={handleCeoOnboardingComplete} />;
   }
 
   // Force onboarding flow if required
