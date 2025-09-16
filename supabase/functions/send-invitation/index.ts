@@ -259,23 +259,47 @@ if (createUserError) {
       });
     }
 
-// Generate Supabase invite verification link
-const appOrigin = (appUrl && appUrl.trim().length > 0) ? appUrl : (req.headers.get('origin') || 'http://localhost:5173');
-const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-  type: 'invite',
-  email: email.toLowerCase(),
-  options: { redirectTo: `${appOrigin}/app` }
-});
+    // Generate Supabase invite verification link with fallback for existing users
+    const appOrigin = (appUrl && appUrl.trim().length > 0) ? appUrl : (req.headers.get('origin') || 'http://localhost:5173');
 
-if (linkError) {
-  console.error('Error generating invite link:', linkError);
-  return new Response(JSON.stringify({ error: 'Failed to generate invite link' }), {
-    status: 500,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
+    let linkData: any = null;
+    let linkError: any = null;
 
-const verifyLink = (linkData as any)?.properties?.action_link || (linkData as any)?.properties?.email_otp_link || (linkData as any)?.action_link || `${appOrigin}/app/auth`;
+    // Try standard invite link first
+    {
+      const { data, error } = await supabase.auth.admin.generateLink({
+        type: 'invite',
+        email: email.toLowerCase(),
+        options: { redirectTo: `${appOrigin}/app` }
+      });
+      linkData = data;
+      linkError = error;
+    }
+
+    // If the user already exists, fall back to a recovery link (password reset)
+    if (linkError && (linkError.code === 'email_exists' || linkError.status === 422)) {
+      const { data: recoveryData, error: recoveryError } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: email.toLowerCase(),
+        options: { redirectTo: `${appOrigin}/app` }
+      });
+      if (!recoveryError) {
+        linkData = recoveryData;
+        linkError = null;
+      } else {
+        linkError = recoveryError; // keep the more relevant error
+      }
+    }
+
+    if (linkError) {
+      console.error('Error generating invite link:', linkError);
+      return new Response(JSON.stringify({ error: linkError.message || 'Failed to generate invite/recovery link' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const verifyLink = (linkData as any)?.properties?.action_link || (linkData as any)?.properties?.email_otp_link || (linkData as any)?.action_link || `${appOrigin}/app/auth`;
 
 // Send invitation email with verification link
 const isCEO = role === 'ceo';
