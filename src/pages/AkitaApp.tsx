@@ -14,6 +14,10 @@ import { StatsPage } from "@/components/stats/StatsPage";
 import { TeamPage } from "@/components/team/TeamPage";
 import { AppLayout } from "@/components/AppLayout";
 import { CEOOnboardingForm } from "@/components/ceo/CEOOnboardingForm";
+import { CEOTeamManagement } from "@/components/ceo/CEOTeamManagement";
+import { CEOOrganizations } from "@/components/ceo/CEOOrganizations";
+import { CEOInviteSalesperson } from "@/components/ceo/CEOInviteSalesperson";
+import { CEOCompany } from "@/components/ceo/CEOCompany";
 
 interface UserRole {
   level: number;
@@ -141,6 +145,11 @@ export const AkitaApp = () => {
           <Route path="/team" element={<TeamPage />} />
           <Route path="/tracking" element={<TrackingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          {/* CEO Routes */}
+          <Route path="/ceo/team" element={<CEOTeamManagement />} />
+          <Route path="/ceo/organizations" element={<CEOOrganizations />} />
+          <Route path="/ceo/invite" element={<CEOInviteSalesperson />} />
+          <Route path="/ceo/company" element={<CEOCompany />} />
           <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
@@ -177,6 +186,11 @@ export const AkitaApp = () => {
         <Route path="/team" element={<TeamPage />} />
         <Route path="/tracking" element={<TrackingPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        {/* CEO Routes */}
+        <Route path="/ceo/team" element={<CEOTeamManagement />} />
+        <Route path="/ceo/organizations" element={<CEOOrganizations />} />
+        <Route path="/ceo/invite" element={<CEOInviteSalesperson />} />
+        <Route path="/ceo/company" element={<CEOCompany />} />
         <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
         <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
