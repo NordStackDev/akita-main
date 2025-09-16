@@ -44,7 +44,7 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         return;
       }
 
-      // Get CEO role first
+      // Get CEO role first so RLS allows company creation
       const { data: ceoRole } = await supabase
         .from("user_roles")
         .select("id")
@@ -87,16 +87,16 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
 
       toast({
         title: "Firma oprettet!",
-        description: `${formData.companyName} er nu oprettet som ${formData.companyType} firma`,
+        description: `${formData.companyName} er nu oprettet som ${formData.companyType} firma. Du kan nu oprette teams og invitere medarbejdere.`,
       });
 
       onComplete();
     } catch (error: any) {
-      console.error('Error creating organization:', error);
+      console.error('Error creating company:', error);
       toast({
         variant: "destructive",
         title: "Fejl ved oprettelse",
-        description: error.message || "Kunne ikke oprette organisation",
+        description: error.message || "Kunne ikke oprette firma",
       });
     } finally {
       setLoading(false);
@@ -112,7 +112,7 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
             Opret dit firma
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Velkommen! Indtast oplysninger om dit firma for at komme i gang.
+            Velkommen! Indtast oplysninger om dit firma for at komme i gang. Du kan senere oprette teams/organisationer under firmaet.
           </CardDescription>
         </CardHeader>
         
