@@ -106,10 +106,10 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <Crown className="w-5 h-5 text-yellow-500" />
-          Inviter ny CEO
+          Inviter CEO
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Send en invitation til en ny CEO. De får mulighed for at oprette deres
+          Send en invitation til en CEO. De får mulighed for at oprette deres
           organisation.
         </CardDescription>
       </CardHeader>

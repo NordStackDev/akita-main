@@ -47,7 +47,10 @@ interface TeamManagementProps {
   onRoleChange: (userId: string, newRoleId: string) => void;
 }
 
-export const TeamManagement = ({ teamMembers, onRoleChange }: TeamManagementProps) => {
+export const TeamManagement = ({
+  teamMembers,
+  onRoleChange,
+}: TeamManagementProps) => {
   const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("");
@@ -108,7 +111,10 @@ export const TeamManagement = ({ teamMembers, onRoleChange }: TeamManagementProp
             <label className="text-sm font-medium mb-2 block">
               Vælg team medlem
             </label>
-            <Select value={selectedMember || ""} onValueChange={setSelectedMember}>
+            <Select
+              value={selectedMember || ""}
+              onValueChange={setSelectedMember}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Vælg en person" />
               </SelectTrigger>
@@ -119,7 +125,8 @@ export const TeamManagement = ({ teamMembers, onRoleChange }: TeamManagementProp
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={member.profiles?.profile_image_url} />
                         <AvatarFallback className="text-xs">
-                          {member.first_name?.[0]}{member.last_name?.[0]}
+                          {member.first_name?.[0]}
+                          {member.last_name?.[0]}
                         </AvatarFallback>
                       </Avatar>
                       {member.first_name} {member.last_name}
@@ -143,8 +150,10 @@ export const TeamManagement = ({ teamMembers, onRoleChange }: TeamManagementProp
                   {availableRoles.map((role) => (
                     <SelectItem key={role.id} value={role.id}>
                       <div className="flex items-center gap-2">
-                        <div 
-                          className={`w-3 h-3 rounded-full ${getRoleColor(role.level)}`}
+                        <div
+                          className={`w-3 h-3 rounded-full ${getRoleColor(
+                            role.level
+                          )}`}
                         />
                         {role.name}
                       </div>
@@ -167,10 +176,15 @@ export const TeamManagement = ({ teamMembers, onRoleChange }: TeamManagementProp
           <h4 className="text-sm font-medium mb-3">Tilgængelige Roller</h4>
           <div className="space-y-2">
             {availableRoles.map((role) => (
-              <div key={role.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+              <div
+                key={role.id}
+                className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
+              >
                 <div className="flex items-center gap-2">
-                  <div 
-                    className={`w-3 h-3 rounded-full ${getRoleColor(role.level)}`}
+                  <div
+                    className={`w-3 h-3 rounded-full ${getRoleColor(
+                      role.level
+                    )}`}
                   />
                   <span className="text-sm font-medium">{role.name}</span>
                 </div>

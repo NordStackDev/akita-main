@@ -2,29 +2,42 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, UserPlus, Mail, User, Phone } from "lucide-react";
 
 interface InviteUserFormProps {
   organizationId: string;
+  allowedRoles?: string[]; // fx ['admin', 'sales']
 }
 
-export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
+export const InviteUserForm = ({
+  organizationId,
+  allowedRoles = ["sales"],
+}: InviteUserFormProps) => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const { toast } = useToast();
+  const [role, setRole] = useState(allowedRoles[0]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         toast({
           variant: "destructive",
@@ -35,20 +48,25 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('send-invitation', {
-        body: {
-          email: email.toLowerCase(),
-          firstName,
-          lastName,
-          phone,
-          organizationId,
-          appUrl: window.location.origin,
-        },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "send-invitation",
+        {
+          body: {
+            email: email.toLowerCase(),
+            firstName,
+            lastName,
+            phone,
+            organizationId,
+            role,
+            appUrl: window.location.origin,
+          },
+        }
+      );
 
       if (error) {
-        console.error('Error sending invitation:', error);
-        const message = (error as any)?.message || 'Kunne ikke sende invitation. Prøv igen.';
+        console.error("Error sending invitation:", error);
+        const message =
+          (error as any)?.message || "Kunne ikke sende invitation. Prøv igen.";
         toast({
           variant: "destructive",
           title: "Fejl ved invitation",
@@ -62,7 +80,7 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
           title: "Invitation sendt!",
           description: `${firstName} ${lastName} har modtaget en invitation på ${email}`,
         });
-        
+
         // Reset form
         setEmail("");
         setFirstName("");
@@ -76,11 +94,11 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
         });
       }
     } catch (error: any) {
-      console.error('Error sending invitation:', error);
+      console.error("Error sending invitation:", error);
       try {
         const ctx = (error as any)?.context;
         let details: string | undefined;
-        if (ctx && typeof ctx.text === 'function') {
+        if (ctx && typeof ctx.text === "function") {
           details = await ctx.text();
         } else if ((error as any)?.message) {
           details = (error as any).message;
@@ -107,16 +125,36 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <UserPlus className="w-5 h-5" />
-          Inviter ny sælger
+          Inviter ny bruger
         </CardTitle>
         <CardDescription className="text-muted-foreground">
           Send en invitation til en ny sælger. De får en engangskode på email.
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         <form onSubmit={handleInvite} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
+            {allowedRoles.length > 1 && (
+              <div>
+                <Label htmlFor="role" className="text-sm font-medium">
+                  Rolle
+                </Label>
+                <select
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full border rounded px-3 py-2 bg-input border-border text-foreground"
+                  required
+                >
+                  {allowedRoles.map((r) => (
+                    <option key={r} value={r}>
+                      {r === "admin" ? "Admin" : "Sælger"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <Label htmlFor="firstName" className="text-sm font-medium">
                 Fornavn
@@ -188,8 +226,8 @@ export const InviteUserForm = ({ organizationId }: InviteUserFormProps) => {
             </div>
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full akita-gradient hover:akita-glow akita-transition"
             disabled={loading}
           >

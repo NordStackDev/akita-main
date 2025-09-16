@@ -2,23 +2,29 @@ import { useState, useEffect } from "react";
 import "./dashboard-float.css";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { InviteUserForm } from "@/components/admin/InviteUserForm";
 import { InviteCEOForm } from "@/components/admin/InviteCEOForm";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  BarChart3, 
-  Users, 
-  Target, 
-  TrendingUp, 
-  MapPin, 
+import {
+  BarChart3,
+  Users,
+  Target,
+  TrendingUp,
+  MapPin,
   ShoppingCart,
   Calendar,
   Award,
-  MessageSquare
+  MessageSquare,
 } from "lucide-react";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { CEODashboard } from "@/components/ceo/CEODashboard";
@@ -35,7 +41,7 @@ export const Dashboard = () => {
     userInfo: null,
     isAdmin: false,
     isCEO: false,
-    organizationId: null
+    organizationId: null,
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -48,7 +54,8 @@ export const Dashboard = () => {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select(`
+        .select(
+          `
           *,
           user_roles (
             name,
@@ -58,7 +65,8 @@ export const Dashboard = () => {
             id,
             name
           )
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .single();
 
@@ -69,21 +77,26 @@ export const Dashboard = () => {
         .single();
 
       const isAdmin = profile?.user_roles?.level <= 2;
-      const isCEO = profile?.user_roles?.name === 'ceo' || profile?.user_roles?.name === 'CEO';
+      const isCEO =
+        profile?.user_roles?.name === "ceo" ||
+        profile?.user_roles?.name === "CEO";
       const organizationId = profile?.organization_id;
 
       const { data: sales } = await supabase
         .from("sales")
-        .select(`
+        .select(
+          `
           *,
           customers (first_name, last_name),
           products (name, points_value)
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(5);
 
-      const totalPoints = sales?.reduce((sum, sale) => sum + (sale.points || 0), 0) || 0;
+      const totalPoints =
+        sales?.reduce((sum, sale) => sum + (sale.points || 0), 0) || 0;
       const salesCount = sales?.length || 0;
 
       setDashboardData({
@@ -96,7 +109,7 @@ export const Dashboard = () => {
         userInfo: userRow || null,
         isAdmin,
         isCEO,
-        organizationId
+        organizationId,
       });
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -116,42 +129,43 @@ export const Dashboard = () => {
       description: "Registrer et nyt salg",
       icon: ShoppingCart,
       color: "akita-gradient",
-      href: "/app/sales/new"
+      href: "/app/sales/new",
     },
     {
       title: "Vælg Lokation",
       description: "Vælg din arbejdsplads",
       icon: MapPin,
       color: "bg-secondary",
-      href: "/app/locations"
+      href: "/app/locations",
     },
     {
       title: "Statistikker",
       description: "Se dine resultater",
       icon: BarChart3,
       color: "bg-secondary",
-      href: "/app/stats"
+      href: "/app/stats",
     },
     {
       title: "Team",
       description: "Se dit teams præstation",
       icon: Users,
       color: "bg-secondary",
-      href: "/app/team"
+      href: "/app/team",
     },
     {
       title: "Sælger Tracking",
       description: "Følg sælgernes aktivitet",
       icon: Target,
       color: "bg-secondary",
-      href: "/app/tracking"
-    }
+      href: "/app/tracking",
+    },
   ];
 
-  const userName = dashboardData.userInfo?.first_name ||
-                   user?.user_metadata?.first_name || 
-                   user?.email?.split("@")[0] || 
-                   "Bruger";
+  const userName =
+    dashboardData.userInfo?.first_name ||
+    user?.user_metadata?.first_name ||
+    user?.email?.split("@")[0] ||
+    "Bruger";
 
   if (loading) {
     return (
@@ -178,12 +192,16 @@ export const Dashboard = () => {
         <div className="mb-4">
           <BackgroundGradient className="rounded-2xl overflow-hidden shadow-lg p-0">
             <div className="relative">
-              <div className="absolute inset-0 z-0">
-              </div>
+              <div className="absolute inset-0 z-0"></div>
               <div className="relative flex items-center gap-4 px-8 py-7 z-10">
                 <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-md border-4 border-white">
                   <Avatar className="h-14 w-14">
-                    <AvatarImage src={dashboardData.userProfile?.profile_image_url || undefined} />
+                    <AvatarImage
+                      src={
+                        dashboardData.userProfile?.profile_image_url ||
+                        undefined
+                      }
+                    />
                     <AvatarFallback className="text-2xl font-bold">
                       {userName.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -216,7 +234,9 @@ export const Dashboard = () => {
             <ShoppingCart className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{dashboardData.salesCount}</div>
+            <div className="text-2xl font-bold text-foreground">
+              {dashboardData.salesCount}
+            </div>
             <p className="text-xs text-muted-foreground">
               Mål: {dashboardData.weeklyTarget}
             </p>
@@ -231,7 +251,9 @@ export const Dashboard = () => {
             <Award className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">{dashboardData.totalPoints}</div>
+            <div className="text-2xl font-bold text-foreground">
+              {dashboardData.totalPoints}
+            </div>
             <p className="text-xs text-muted-foreground">+12% fra sidste uge</p>
           </CardContent>
         </Card>
@@ -244,7 +266,9 @@ export const Dashboard = () => {
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">#{dashboardData.teamRank}</div>
+            <div className="text-2xl font-bold text-foreground">
+              #{dashboardData.teamRank}
+            </div>
             <p className="text-xs text-muted-foreground">Af 10 sælgere</p>
           </CardContent>
         </Card>
@@ -258,7 +282,10 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {Math.round((dashboardData.salesCount / dashboardData.weeklyTarget) * 100)}%
+              {Math.round(
+                (dashboardData.salesCount / dashboardData.weeklyTarget) * 100
+              )}
+              %
             </div>
             <p className="text-xs text-muted-foreground">Ugens mål</p>
           </CardContent>
@@ -267,7 +294,9 @@ export const Dashboard = () => {
 
       {/* Quick Actions */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-foreground mb-4">Hurtige handlinger</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">
+          Hurtige handlinger
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action, index) => (
             <NavLink
@@ -283,8 +312,12 @@ export const Dashboard = () => {
                   >
                     <action.icon className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-2">{action.title}</h3>
-                  <p className="text-sm text-muted-foreground">{action.description}</p>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    {action.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {action.description}
+                  </p>
                 </CardContent>
               </Card>
             </NavLink>
@@ -293,15 +326,27 @@ export const Dashboard = () => {
       </div>
 
       {/* Admin Section - Only show for non-CEO admins */}
-      {dashboardData.isAdmin && !dashboardData.isCEO && dashboardData.organizationId && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Admin funktioner</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <InviteUserForm organizationId={dashboardData.organizationId} />
-            <InviteCEOForm organizationId={dashboardData.organizationId} />
+      {/* Developer og Admin kan invitere admin, sælger og CEO */}
+      {(dashboardData.userProfile?.user_roles?.name === "developer" ||
+        dashboardData.isAdmin) &&
+        !dashboardData.isCEO &&
+        dashboardData.organizationId && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
+              {dashboardData.userProfile?.user_roles?.name === "developer"
+                ? "Developer"
+                : "Admin"}{" "}
+              funktioner
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <InviteUserForm
+                organizationId={dashboardData.organizationId}
+                allowedRoles={["admin", "sales"]}
+              />
+              <InviteCEOForm organizationId={dashboardData.organizationId} />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Recent Sales & Activities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -337,7 +382,9 @@ export const Dashboard = () => {
                 <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">Ingen salg endnu</p>
                 <NavLink to="/app/sales/new">
-                  <Button className="mt-4 akita-gradient">Registrer dit første salg</Button>
+                  <Button className="mt-4 akita-gradient">
+                    Registrer dit første salg
+                  </Button>
                 </NavLink>
               </div>
             )}
@@ -346,7 +393,9 @@ export const Dashboard = () => {
 
         <Card className="akita-card border-border">
           <CardHeader>
-            <CardTitle className="text-foreground">Dagens aktiviteter</CardTitle>
+            <CardTitle className="text-foreground">
+              Dagens aktiviteter
+            </CardTitle>
             <CardDescription>Kommende møder og deadlines</CardDescription>
           </CardHeader>
           <CardContent>
@@ -355,14 +404,18 @@ export const Dashboard = () => {
                 <Calendar className="h-5 w-5 text-primary mr-3" />
                 <div>
                   <p className="font-medium text-foreground">Team møde</p>
-                  <p className="text-sm text-muted-foreground">10:00 - Kontoret</p>
+                  <p className="text-sm text-muted-foreground">
+                    10:00 - Kontoret
+                  </p>
                 </div>
               </div>
               <div className="flex items-center p-3 bg-input rounded-lg">
                 <MessageSquare className="h-5 w-5 text-primary mr-3" />
                 <div>
                   <p className="font-medium text-foreground">Træning session</p>
-                  <p className="text-sm text-muted-foreground">14:00 - Online</p>
+                  <p className="text-sm text-muted-foreground">
+                    14:00 - Online
+                  </p>
                 </div>
               </div>
             </div>
