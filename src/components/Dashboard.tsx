@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { InviteUserForm } from "@/components/admin/InviteUserForm";
-import { InviteCEOForm } from "@/components/admin/InviteCEOForm";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -21,6 +20,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
+import { CEODashboard } from "@/components/ceo/CEODashboard";
 
 export const Dashboard = () => {
   const { user } = useAuth();
@@ -33,6 +33,7 @@ export const Dashboard = () => {
     userProfile: null,
     userInfo: null,
     isAdmin: false,
+    isCEO: false,
     organizationId: null
   });
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,7 @@ export const Dashboard = () => {
         .single();
 
       const isAdmin = profile?.user_roles?.level <= 2;
+      const isCEO = profile?.user_roles?.name === 'ceo' || profile?.user_roles?.name === 'CEO';
       const organizationId = profile?.organization_id;
 
       const { data: sales } = await supabase
@@ -92,6 +94,7 @@ export const Dashboard = () => {
         userProfile: profile,
         userInfo: userRow || null,
         isAdmin,
+        isCEO,
         organizationId
       });
     } catch (error) {
@@ -160,6 +163,11 @@ export const Dashboard = () => {
         </div>
       </div>
     );
+  }
+
+  // Show CEO Dashboard for CEOs
+  if (dashboardData.isCEO) {
+    return <CEODashboard />;
   }
 
   return (
@@ -289,7 +297,6 @@ export const Dashboard = () => {
           <h2 className="text-xl font-semibold text-foreground mb-4">Admin funktioner</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <InviteUserForm organizationId={dashboardData.organizationId} />
-            <InviteCEOForm organizationId={dashboardData.organizationId} />
           </div>
         </div>
       )}
