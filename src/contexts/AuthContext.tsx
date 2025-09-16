@@ -50,6 +50,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Ensure invited users are attached to their auth account (align ids)
+  useEffect(() => {
+    const attach = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) return;
+      try {
+        const { data, error } = await supabase.rpc('attach_auth_user_to_invited_user');
+        if (error) {
+          console.warn('[Auth] attach_auth_user_to_invited_user error', error);
+        } else {
+          console.log('[Auth] attach_auth_user_to_invited_user result', data);
+        }
+      } catch (e) {
+        console.warn('[Auth] attach_auth_user_to_invited_user threw', e);
+      }
+    };
+    attach();
+  }, [user]);
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
