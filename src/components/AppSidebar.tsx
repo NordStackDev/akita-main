@@ -1,3 +1,4 @@
+import { ChangelogNavDialog } from "@/components/ChangelogNavDialog";
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -334,6 +335,7 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
         )}
       </SidebarContent>
 
+      <ChangelogNavDialog />
       <SidebarFooter className="border-t border-border">
         <div className="p-2">
           <DropdownMenu>

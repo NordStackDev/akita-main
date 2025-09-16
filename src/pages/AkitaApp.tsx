@@ -1,3 +1,4 @@
+import { ChangelogPopup } from "@/components/ChangelogPopup";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginPage } from "@/components/auth/LoginPage";
@@ -27,6 +28,7 @@ interface UserRole {
 }
 
 export const AkitaApp = () => {
+  // Changelog-popup vises globalt
   const { user, session, loading, signOut } = useAuth();
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [roleLoading, setRoleLoading] = useState(true);
@@ -193,34 +195,37 @@ export const AkitaApp = () => {
 
   // Show admin dashboard for higher levels (0-5: admin, ceo, leder osv.)
   return (
-    <AppLayout user={user} onLogout={signOut}>
-      <Routes>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/sales" element={<SalesPage />} />
-        <Route path="/sales/new" element={<SalesPage />} />
-        <Route path="/locations" element={<LocationsPage />} />
-        <Route path="/stats" element={<StatsPage />} />
-        <Route path="/team" element={<TeamPage />} />
-        <Route path="/tracking" element={<TrackingPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        {/* CEO Routes */}
-        <Route path="/ceo/team" element={<CEOTeamManagement />} />
-        <Route path="/ceo/organizations" element={<CEOOrganizations />} />
-        <Route path="/ceo/invite" element={<CEOInviteSalesperson />} />
-        <Route path="/ceo/company" element={<CEOCompany />} />
-        {/* Admin Routes */}
-        <Route
-          path="/admin/organizations"
-          element={<OrganizationManagementPage />}
-        />
-        <Route path="/admin/invite" element={<InvitePage />} />
-        <Route
-          path="/auth"
-          element={<Navigate to="/app/dashboard" replace />}
-        />
-        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
-      </Routes>
-    </AppLayout>
+    <>
+      <ChangelogPopup />
+      <AppLayout user={user} onLogout={signOut}>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/sales" element={<SalesPage />} />
+          <Route path="/sales/new" element={<SalesPage />} />
+          <Route path="/locations" element={<LocationsPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/team" element={<TeamPage />} />
+          <Route path="/tracking" element={<TrackingPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          {/* CEO Routes */}
+          <Route path="/ceo/team" element={<CEOTeamManagement />} />
+          <Route path="/ceo/organizations" element={<CEOOrganizations />} />
+          <Route path="/ceo/invite" element={<CEOInviteSalesperson />} />
+          <Route path="/ceo/company" element={<CEOCompany />} />
+          {/* Admin Routes */}
+          <Route
+            path="/admin/organizations"
+            element={<OrganizationManagementPage />}
+          />
+          <Route path="/admin/invite" element={<InvitePage />} />
+          <Route
+            path="/auth"
+            element={<Navigate to="/app/dashboard" replace />}
+          />
+          <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+        </Routes>
+      </AppLayout>
+    </>
   );
 };
