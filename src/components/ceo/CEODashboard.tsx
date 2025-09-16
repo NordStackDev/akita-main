@@ -13,7 +13,8 @@ import {
   UserPlus,
   Settings,
   Target,
-  Award
+  Award,
+  Building
 } from "lucide-react";
 import { InviteSalespersonForm } from "./InviteSalespersonForm";
 import { TeamManagement } from "./TeamManagement";
@@ -41,6 +42,15 @@ interface CEOStats {
   topPerformer?: TeamMember;
 }
 
+interface CompanyInfo {
+  id: string;
+  name: string;
+  organizations: {
+    id: string;
+    name: string;
+  }[];
+}
+
 export const CEODashboard = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [stats, setStats] = useState<CEOStats>({
@@ -48,6 +58,7 @@ export const CEODashboard = () => {
     totalTeamMembers: 0,
     totalPoints: 0
   });
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -64,12 +75,39 @@ export const CEODashboard = () => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("organization_id")
+        .select(`
+          organization_id,
+          organizations (
+            id,
+            name,
+            company_id
+          )
+        `)
         .eq("user_id", user.id)
         .single();
 
       if (!profile?.organization_id) return;
       setOrganizationId(profile.organization_id);
+
+      // Get company and all its organizations
+      if (profile.organizations?.company_id) {
+        const { data: company } = await supabase
+          .from("companies")
+          .select(`
+            id,
+            name,
+            organizations (
+              id,
+              name
+            )
+          `)
+          .eq("id", profile.organizations.company_id)
+          .single();
+
+        if (company) {
+          setCompanyInfo(company);
+        }
+      }
 
       // Get team members from the same organization
       const { data: members } = await supabase
@@ -189,9 +227,48 @@ export const CEODashboard = () => {
             <Crown className="h-8 w-8 text-yellow-500" />
             CEO Dashboard
           </h1>
-          <p className="text-muted-foreground">Oversigt over dit team og forretning</p>
+          <p className="text-muted-foreground">
+            Velkommen til {companyInfo?.name || 'din virksomhed'} - oversigt over dit team og forretning
+          </p>
         </div>
       </div>
+
+      {/* Company & Organizations Overview */}
+      {companyInfo && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Virksomhed</CardTitle>
+              <CardDescription>Din virksomheds information</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">{companyInfo.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {companyInfo.organizations?.length || 0} organisationer
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Organisationer</CardTitle>
+              <CardDescription>Alle organisationer i virksomheden</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {companyInfo.organizations?.map((org) => (
+                  <div key={org.id} className="flex items-center gap-2 p-2 bg-muted rounded">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="text-sm">{org.name}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

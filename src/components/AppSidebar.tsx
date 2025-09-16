@@ -9,7 +9,11 @@ import {
   Settings,
   LogOut,
   User,
-  Target
+  Target,
+  Crown,
+  Building,
+  UserPlus,
+  Briefcase
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -99,8 +103,17 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
         ...(userRole && (userRole.level <= 5 || userRole.name === 'developer') ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }] : []),
       ];
 
+  // CEO specific navigation items
+  const ceoItems = userRole && (userRole.name === 'ceo' || userRole.name === 'CEO') ? [
+    { title: "Team Management", url: "/app/ceo/team", icon: Users },
+    { title: "Organisationer", url: "/app/ceo/organizations", icon: Building },
+    { title: "Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
+    { title: "Virksomhed", url: "/app/ceo/company", icon: Briefcase },
+  ] : [];
+
   const isActive = (path: string) => currentPath === path;
   const isExpanded = navigationItems.some((item) => isActive(item.url));
+  const isCeoExpanded = ceoItems.some((item) => isActive(item.url));
 
   const getNavClassName = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50";
@@ -145,6 +158,34 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* CEO Section */}
+        {ceoItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-yellow-500" />
+              {state !== "collapsed" && "CEO"}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {ceoItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        end 
+                        className={({ isActive }) => getNavClassName({ isActive })}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {state !== "collapsed" && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border">
