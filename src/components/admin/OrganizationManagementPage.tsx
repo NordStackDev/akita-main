@@ -45,8 +45,12 @@ const OrganizationManagementPage = () => {
         `id, name, logo_url, cvr, organizations (id, name, created_at, company_id)`
       ) // join organizations
       .order("created_at", { ascending: false });
+    
+    console.log("[DEBUG] Supabase response:", { data, error });
+    
     if (error) {
-      setError("Kunne ikke hente firmaer og organisationer");
+      console.error("[DEBUG] Supabase error:", error);
+      setError(`Kunne ikke hente firmaer og organisationer: ${error.message}`);
       setLoading(false);
       return;
     }
