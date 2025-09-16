@@ -60,13 +60,25 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
 
       if (error) {
         console.error("Error sending CEO invitation:", error);
-        const message =
-          (error as any)?.message ||
-          "Kunne ikke sende CEO invitation. Prøv igen.";
+        let details: string | undefined;
+        try {
+          const ctx = (error as any)?.context;
+          if (ctx && typeof ctx.text === "function") {
+            const txt = await ctx.text();
+            try {
+              const parsed = JSON.parse(txt);
+              details = parsed?.error || parsed?.message || txt;
+            } catch {
+              details = txt;
+            }
+          } else if ((error as any)?.message) {
+            details = (error as any).message;
+          }
+        } catch {}
         toast({
           variant: "destructive",
           title: "Fejl ved CEO invitation",
-          description: message,
+          description: details || "Kunne ikke sende CEO invitation. Prøv igen.",
         });
         return;
       }
