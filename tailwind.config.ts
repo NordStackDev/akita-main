@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        amaranth: ['Amaranth', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
