@@ -47,14 +47,14 @@
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Modern sidebar colors */
-    --sidebar-background: 225 15% 9%;
+    /* AKITA red sidebar colors */
+    --sidebar-background: 351 15% 8%; /* Dark red-tinted background */
     --sidebar-foreground: 225 15% 23%;
-    --sidebar-primary: 351 100% 46%;
+    --sidebar-primary: 351 100% 46%; /* AKITA red */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 15% 14%;
-    --sidebar-accent-foreground: 225 15% 90%;
-    --sidebar-border: 225 15% 16%;
+    --sidebar-accent: 351 30% 18%; /* Red accent backgrounds */
+    --sidebar-accent-foreground: 351 5% 95%; /* Light text on red */
+    --sidebar-border: 351 25% 15%; /* Red-tinted borders */
     --sidebar-ring: 351 100% 46%;
   }
 }
