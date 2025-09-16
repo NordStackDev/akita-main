@@ -14,6 +14,8 @@ import {
   Building,
   UserPlus,
   Briefcase,
+  Code,
+  Shield,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -99,19 +101,32 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
       ? [{ title: "Forside", url: "/app/dashboard", icon: Home }]
       : [
           { title: "Dashboard", url: "/app/dashboard", icon: Home },
-          { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
-          { title: "Lokationer", url: "/app/locations", icon: MapPin },
-          { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
-          { title: "Team", url: "/app/team", icon: Users },
-          // Show tracking for teamlead and above (level <= 5) or developer
-          ...(userRole && (userRole.level <= 5 || userRole.name === "developer")
-            ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }]
-            : []),
+          // Developer gets access to ALL standard navigation
+          ...(userRole && userRole.name === "developer" 
+            ? [
+                { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
+                { title: "Lokationer", url: "/app/locations", icon: MapPin },
+                { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
+                { title: "Team", url: "/app/team", icon: Users },
+                { title: "Sælger Tracking", url: "/app/tracking", icon: Target },
+              ]
+            : [
+                { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
+                { title: "Lokationer", url: "/app/locations", icon: MapPin },
+                { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
+                { title: "Team", url: "/app/team", icon: Users },
+                // Show tracking for teamlead and above (level <= 5)
+                ...(userRole && userRole.level <= 5
+                  ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }]
+                  : []),
+              ]
+          ),
         ];
 
-  // CEO specific navigation items
+  // CEO specific navigation items  
   const ceoItems =
-    userRole && (userRole.name === "ceo" || userRole.name === "CEO")
+    userRole && 
+    (userRole.name === "ceo" || userRole.name === "CEO")
       ? [
           { title: "Team Management", url: "/app/ceo/team", icon: Users },
           {
@@ -122,7 +137,7 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
           { title: "Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
           { title: "Virksomhed", url: "/app/ceo/company", icon: Briefcase },
         ]
-      : [];
+       : [];
 
   // Admin specific navigation items
   const adminItems =
@@ -133,13 +148,31 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
             url: "/app/admin/organizations",
             icon: Building,
           },
-          // Add more admin links here as needed
+        ]
+      : [];
+
+  // Developer specific items - access to ALL areas
+  const developerItems =
+    userRole && userRole.name === "developer"
+      ? [
+          // All CEO functions
+          { title: "CEO Team Management", url: "/app/ceo/team", icon: Users },
+          {
+            title: "CEO Organisationer",
+            url: "/app/ceo/organizations",
+            icon: Building,
+          },
+          { title: "CEO Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
+          { title: "CEO Virksomhed", url: "/app/ceo/company", icon: Briefcase },
+          // Additional admin/management functions would go here
         ]
       : [];
 
   const isActive = (path: string) => currentPath === path;
   const isExpanded = navigationItems.some((item) => isActive(item.url));
   const isCeoExpanded = ceoItems.some((item) => isActive(item.url));
+  const isAdminExpanded = adminItems.some((item) => isActive(item.url));
+  const isDeveloperExpanded = developerItems.some((item) => isActive(item.url));
 
   const getNavClassName = ({ isActive }: { isActive: boolean }) =>
     isActive
@@ -228,6 +261,36 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className={({ isActive }) =>
+                          getNavClassName({ isActive })
+                        }
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {state !== "collapsed" && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Developer Section - Full System Access */}
+        {developerItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <Code className="w-4 h-4 text-green-500" />
+              {state !== "collapsed" && "Developer Access"}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {developerItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink
