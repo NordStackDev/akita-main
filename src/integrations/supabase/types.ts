@@ -1794,6 +1794,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: number
       }
+      is_admin_or_developer: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
