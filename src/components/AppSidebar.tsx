@@ -175,6 +175,11 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
             url: "/app/developer/monitoring",
             icon: Shield,
           },
+          {
+            title: "Changelog Admin",
+            url: "/app/developer/changelog",
+            icon: BarChart3,
+          },
           // All CEO functions
           { title: "CEO Team Management", url: "/app/ceo/team", icon: Users },
           {

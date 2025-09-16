@@ -19,6 +19,7 @@ import { CEOTeamManagement } from "@/components/ceo/CEOTeamManagement";
 import { CEOOrganizations } from "@/components/ceo/CEOOrganizations";
 import { CEOInviteSalesperson } from "@/components/ceo/CEOInviteSalesperson";
 import { CEOCompany } from "@/components/ceo/CEOCompany";
+import { ChangelogAdminPage } from "@/components/developer/ChangelogAdminPage";
 import { OrganizationManagementPage } from "@/components/admin/OrganizationManagementPage";
 import InvitePage from "./InvitePage";
 
@@ -155,6 +156,8 @@ export const AkitaApp = () => {
           <Route path="/team" element={<TeamPage />} />
           <Route path="/tracking" element={<TrackingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          {/* Developer Routes */}
+          <Route path="/developer/changelog" element={<ChangelogAdminPage />} />
           {/* CEO Routes */}
           <Route path="/ceo/team" element={<CEOTeamManagement />} />
           <Route path="/ceo/organizations" element={<CEOOrganizations />} />
