@@ -2,7 +2,13 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Crown, Mail, User, Building } from "lucide-react";
@@ -24,7 +30,9 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
     setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         toast({
           variant: "destructive",
@@ -35,21 +43,26 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('send-invitation', {
-        body: {
-          email: email.toLowerCase(),
-          firstName,
-          lastName,
-          companyName,
-          organizationId,
-          role: 'ceo',
-          appUrl: window.location.origin,
-        },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "send-invitation",
+        {
+          body: {
+            email: email.toLowerCase(),
+            firstName,
+            lastName,
+            companyName,
+            organizationId,
+            role: "ceo",
+            appUrl: window.location.origin,
+          },
+        }
+      );
 
       if (error) {
-        console.error('Error sending CEO invitation:', error);
-        const message = (error as any)?.message || 'Kunne ikke sende CEO invitation. Prøv igen.';
+        console.error("Error sending CEO invitation:", error);
+        const message =
+          (error as any)?.message ||
+          "Kunne ikke sende CEO invitation. Prøv igen.";
         toast({
           variant: "destructive",
           title: "Fejl ved CEO invitation",
@@ -63,7 +76,7 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
           title: "CEO invitation sendt!",
           description: `${firstName} ${lastName} har modtaget en CEO invitation på ${email}`,
         });
-        
+
         // Reset form
         setEmail("");
         setFirstName("");
@@ -77,7 +90,7 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
         });
       }
     } catch (error: any) {
-      console.error('Error sending CEO invitation:', error);
+      console.error("Error sending CEO invitation:", error);
       toast({
         variant: "destructive",
         title: "Fejl ved CEO invitation",
@@ -93,13 +106,14 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-foreground">
           <Crown className="w-5 h-5 text-yellow-500" />
-          Inviter nu CEO
+          Inviter ny CEO
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Send en invitation til en ny CEO. De får mulighed for at oprette deres organisation.
+          Send en invitation til en ny CEO. De får mulighed for at oprette deres
+          organisation.
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         <form onSubmit={handleInvite} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -174,8 +188,8 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
             </div>
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full akita-gradient hover:akita-glow akita-transition"
             disabled={loading}
           >
