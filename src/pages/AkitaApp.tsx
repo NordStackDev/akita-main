@@ -18,8 +18,8 @@ import { CEOTeamManagement } from "@/components/ceo/CEOTeamManagement";
 import { CEOOrganizations } from "@/components/ceo/CEOOrganizations";
 import { CEOInviteSalesperson } from "@/components/ceo/CEOInviteSalesperson";
 import { CEOCompany } from "@/components/ceo/CEOCompany";
-import OrganizationManagementPage from "@/components/admin/OrganizationManagementPage";
-import { SystemMonitoringPage } from "@/components/developer/SystemMonitoringPage";
+import { OrganizationManagementPage } from "@/components/admin/OrganizationManagementPage";
+import InvitePage from "./InvitePage";
 
 interface UserRole {
   level: number;
@@ -43,7 +43,6 @@ export const AkitaApp = () => {
 
   const loadUserRole = async () => {
     try {
-      // Ensure invited user row is attached to auth user id (no-op if already attached)
       try {
         await supabase.rpc("attach_auth_user_to_invited_user");
       } catch (e) {
@@ -74,7 +73,6 @@ export const AkitaApp = () => {
           name: data.user_roles.name,
         });
 
-        // Check if CEO needs special onboarding (create organization)
         if (
           data.user_roles.name === "ceo" &&
           (!data.organization_id || !data.first_login_completed)
@@ -87,7 +85,6 @@ export const AkitaApp = () => {
           );
         }
       } else {
-        // If no user row yet, force onboarding to collect basics
         setOnboardingRequired(true);
       }
     } catch (error) {
@@ -119,7 +116,6 @@ export const AkitaApp = () => {
     );
   }
 
-  // CEO onboarding flow (create organization)
   if (ceoOnboardingRequired) {
     const handleCeoOnboardingComplete = () => {
       setCeoOnboardingRequired(false);
@@ -128,7 +124,6 @@ export const AkitaApp = () => {
     return <CEOOnboardingForm onComplete={handleCeoOnboardingComplete} />;
   }
 
-  // Force onboarding flow if required
   if (onboardingRequired) {
     const handleOnboardingComplete = () => {
       setOnboardingRequired(false);
@@ -145,8 +140,8 @@ export const AkitaApp = () => {
     );
   }
 
-  // Admin and developer get access to admin panel
-  if (userRole && (userRole.name === "developer" || userRole.level <= 2)) {
+  // Developer gets access to everything
+  if (userRole && userRole.name === "developer") {
     return (
       <AppLayout user={user} onLogout={signOut}>
         <Routes>
@@ -168,11 +163,7 @@ export const AkitaApp = () => {
             path="/admin/organizations"
             element={<OrganizationManagementPage />}
           />
-          {/* Developer Routes */}
-          <Route
-            path="/developer/monitoring"
-            element={<SystemMonitoringPage />}
-          />
+          <Route path="/admin/invite" element={<InvitePage />} />
           <Route
             path="/auth"
             element={<Navigate to="/app/dashboard" replace />}
@@ -200,7 +191,7 @@ export const AkitaApp = () => {
     );
   }
 
-  // Show admin dashboard for higher levels (0-5: developer, admin, CEO, direktør, chef, leder)
+  // Show admin dashboard for higher levels (0-5: admin, ceo, leder osv.)
   return (
     <AppLayout user={user} onLogout={signOut}>
       <Routes>
@@ -217,6 +208,12 @@ export const AkitaApp = () => {
         <Route path="/ceo/organizations" element={<CEOOrganizations />} />
         <Route path="/ceo/invite" element={<CEOInviteSalesperson />} />
         <Route path="/ceo/company" element={<CEOCompany />} />
+        {/* Admin Routes */}
+        <Route
+          path="/admin/organizations"
+          element={<OrganizationManagementPage />}
+        />
+        <Route path="/admin/invite" element={<InvitePage />} />
         <Route
           path="/auth"
           element={<Navigate to="/app/dashboard" replace />}

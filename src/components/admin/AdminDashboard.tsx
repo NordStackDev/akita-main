@@ -8,8 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { InviteUserForm } from "@/components/admin/InviteUserForm";
-import { InviteCEOForm } from "@/components/admin/InviteCEOForm";
+// import { InviteUserForm } from "@/components/admin/InviteUserForm";
+// import { InviteCEOForm } from "@/components/admin/InviteCEOForm";
 import { useToast } from "@/components/ui/use-toast";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -82,7 +82,8 @@ export const AdminDashboard = () => {
         .limit(5);
 
       const totalUsers = users?.length || 0;
-      const activeUsers = users?.filter((u) => u.status === "active").length || 0;
+      const activeUsers =
+        users?.filter((u) => u.status === "active").length || 0;
       const pendingInvitations = invitations?.length || 0;
 
       setAdminData({
@@ -120,9 +121,7 @@ export const AdminDashboard = () => {
   }
 
   const adminName =
-    user?.user_metadata?.first_name ||
-    user?.email?.split("@")[0] ||
-    "Admin";
+    user?.user_metadata?.first_name || user?.email?.split("@")[0] || "Admin";
 
   return (
     <div className="p-6">
@@ -170,9 +169,7 @@ export const AdminDashboard = () => {
             <div className="text-2xl font-bold text-foreground">
               {adminData.totalUsers}
             </div>
-            <p className="text-xs text-muted-foreground">
-              I organisationen
-            </p>
+            <p className="text-xs text-muted-foreground">I organisationen</p>
           </CardContent>
         </Card>
 
@@ -228,21 +225,7 @@ export const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Invitation Forms */}
-      {adminData.organizationId && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-4">
-            Administrer invitationer
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <InviteUserForm
-              organizationId={adminData.organizationId}
-              allowedRoles={["admin", "sales"]}
-            />
-            <InviteCEOForm organizationId={adminData.organizationId} />
-          </div>
-        </div>
-      )}
+      {/* Invitation forms er nu flyttet til dedikerede admin-sider */}
 
       {/* Recent Users & Organization Info */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -276,7 +259,9 @@ export const AdminDashboard = () => {
                     </div>
                     <div className="text-right">
                       <Badge
-                        variant={user.status === "active" ? "default" : "secondary"}
+                        variant={
+                          user.status === "active" ? "default" : "secondary"
+                        }
                         className="text-xs"
                       >
                         {user.status}
@@ -323,7 +308,9 @@ export const AdminDashboard = () => {
             ) : (
               <div className="text-center py-8">
                 <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Ingen organisation fundet</p>
+                <p className="text-muted-foreground">
+                  Ingen organisation fundet
+                </p>
               </div>
             )}
           </CardContent>

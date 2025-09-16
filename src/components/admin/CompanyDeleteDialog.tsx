@@ -40,9 +40,11 @@ const CompanyDeleteDialog: React.FC<CompanyDeleteDialogProps> = ({
     try {
       // Check if company has organizations
       const totalOrganizations = company.organizations?.length || 0;
-      
+
       if (totalOrganizations > 0) {
-        toast.error("Kan ikke slette firma med eksisterende organisationer. Slet organisationerne først.");
+        toast.error(
+          "Kan ikke slette firma med eksisterende organisationer. Slet organisationerne først."
+        );
         onOpenChange(false);
         return;
       }
@@ -76,11 +78,13 @@ const CompanyDeleteDialog: React.FC<CompanyDeleteDialogProps> = ({
             <br />
             {company?.organizations && company.organizations.length > 0 && (
               <span className="text-orange-600 font-medium">
-                Advarsel: Dette firma har {company.organizations.length} organisationer tilknyttet. 
-                Du skal slette alle organisationer først.
+                Advarsel: Dette firma har {company.organizations.length}{" "}
+                organisationer tilknyttet. Du skal slette alle organisationer
+                først.
               </span>
             )}
-            {(!company?.organizations || company.organizations.length === 0) && (
+            {(!company?.organizations ||
+              company.organizations.length === 0) && (
               <span className="text-red-600 font-medium">
                 Denne handling kan ikke fortrydes.
               </span>
@@ -91,7 +95,10 @@ const CompanyDeleteDialog: React.FC<CompanyDeleteDialogProps> = ({
           <AlertDialogCancel>Annuller</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDelete}
-            disabled={loading || (company?.organizations && company.organizations.length > 0)}
+            disabled={
+              loading ||
+              (company?.organizations && company.organizations.length > 0)
+            }
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             {loading ? "Sletter..." : "Slet firma"}

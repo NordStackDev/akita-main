@@ -102,13 +102,17 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
       : [
           { title: "Dashboard", url: "/app/dashboard", icon: Home },
           // Developer gets access to ALL standard navigation
-          ...(userRole && userRole.name === "developer" 
+          ...(userRole && userRole.name === "developer"
             ? [
                 { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
                 { title: "Lokationer", url: "/app/locations", icon: MapPin },
                 { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
                 { title: "Team", url: "/app/team", icon: Users },
-                { title: "Sælger Tracking", url: "/app/tracking", icon: Target },
+                {
+                  title: "Sælger Tracking",
+                  url: "/app/tracking",
+                  icon: Target,
+                },
               ]
             : [
                 { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
@@ -117,16 +121,20 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
                 { title: "Team", url: "/app/team", icon: Users },
                 // Show tracking for teamlead and above (level <= 5)
                 ...(userRole && userRole.level <= 5
-                  ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }]
+                  ? [
+                      {
+                        title: "Sælger Tracking",
+                        url: "/app/tracking",
+                        icon: Target,
+                      },
+                    ]
                   : []),
-              ]
-          ),
+              ]),
         ];
 
-  // CEO specific navigation items  
+  // CEO specific navigation items
   const ceoItems =
-    userRole && 
-    (userRole.name === "ceo" || userRole.name === "CEO")
+    userRole && (userRole.name === "ceo" || userRole.name === "CEO")
       ? [
           { title: "Team Management", url: "/app/ceo/team", icon: Users },
           {
@@ -137,7 +145,7 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
           { title: "Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
           { title: "Virksomhed", url: "/app/ceo/company", icon: Briefcase },
         ]
-       : [];
+      : [];
 
   // Admin specific navigation items
   const adminItems =
@@ -148,6 +156,11 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
             url: "/app/admin/organizations",
             icon: Building,
           },
+          {
+            title: "Inviter bruger/CEO",
+            url: "/app/admin/invite",
+            icon: UserPlus,
+          },
         ]
       : [];
 
@@ -156,7 +169,11 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
     userRole && userRole.name === "developer"
       ? [
           // System monitoring (developer only)
-          { title: "System Overvågning", url: "/app/developer/monitoring", icon: Shield },
+          {
+            title: "System Overvågning",
+            url: "/app/developer/monitoring",
+            icon: Shield,
+          },
           // All CEO functions
           { title: "CEO Team Management", url: "/app/ceo/team", icon: Users },
           {
@@ -164,7 +181,11 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
             url: "/app/ceo/organizations",
             icon: Building,
           },
-          { title: "CEO Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
+          {
+            title: "CEO Inviter Sælger",
+            url: "/app/ceo/invite",
+            icon: UserPlus,
+          },
           { title: "CEO Virksomhed", url: "/app/ceo/company", icon: Briefcase },
         ]
       : [];
