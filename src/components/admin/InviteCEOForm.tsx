@@ -91,11 +91,26 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
       }
     } catch (error: any) {
       console.error("Error sending CEO invitation:", error);
-      toast({
-        variant: "destructive",
-        title: "Fejl ved CEO invitation",
-        description: "Der opstod en uventet fejl",
-      });
+      try {
+        const ctx = (error as any)?.context;
+        let details: string | undefined;
+        if (ctx && typeof ctx.text === "function") {
+          details = await ctx.text();
+        } else if ((error as any)?.message) {
+          details = (error as any).message;
+        }
+        toast({
+          variant: "destructive",
+          title: "Fejl ved CEO invitation",
+          description: details || "Der opstod en uventet fejl",
+        });
+      } catch {
+        toast({
+          variant: "destructive",
+          title: "Fejl ved CEO invitation",
+          description: "Der opstod en uventet fejl",
+        });
+      }
     } finally {
       setLoading(false);
     }
