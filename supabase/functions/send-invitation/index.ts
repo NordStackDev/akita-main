@@ -201,7 +201,7 @@ const appOrigin = (appUrl && appUrl.trim().length > 0) ? appUrl : (req.headers.g
 const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
   type: 'invite',
   email: email.toLowerCase(),
-  options: { redirectTo: `${appOrigin}/app/auth` }
+  options: { redirectTo: `${appOrigin}/app` }
 });
 
 if (linkError) {
@@ -252,7 +252,7 @@ const emailResponse = await resend.emails.send({
         </div>
         <p style="color: #666; line-height: 1.6;">
           Efter bekræftelse bliver du logget ind og ${isCEO ? 'kan oprette din organisation' : 'bliver bedt om at oprette din egen adgangskode'}.
-          Du kan derefter tilgå appen via <a href="${appOrigin}/app/auth">${appOrigin}/app/auth</a>.
+          Du kan derefter tilgå appen via <a href="${appOrigin}/app">${appOrigin}/app</a>.
         </p>
         <p style="color: #a00; line-height: 1.6; margin-top: 16px;">
           Bemærk: Login med engangskode er ikke understøttet. Brug linket ovenfor til at bekræfte din konto.

@@ -100,7 +100,7 @@ export const AkitaApp = () => {
     return (
       <Routes>
         <Route path="/auth" element={<LoginPage onLogin={() => {}} />} />
-        <Route path="*" element={<Navigate to="/app/auth" replace />} />
+        <Route path="*" element={<LoginPage onLogin={() => {}} />} />
       </Routes>
     );
   }
