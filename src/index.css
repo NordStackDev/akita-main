@@ -1,3 +1,5 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,44 +11,33 @@
     /* Dark theme base colors */
     --background: 220 13% 8%; /* Deep dark gray #141414 */
     --foreground: 0 0% 95%; /* Light text */
-
     --card: 220 13% 11%; /* Slightly lighter than background #1c1c1c */
     --card-foreground: 0 0% 95%;
-
     --popover: 220 13% 11%;
     --popover-foreground: 0 0% 95%;
-
     /* AKITA red brand color */
     --primary: 0 100% 50%; /* Bright red #ff0000 */
     --primary-foreground: 0 0% 100%;
-
     --secondary: 220 13% 16%; /* Medium gray for secondary elements */
     --secondary-foreground: 0 0% 85%;
-
     --muted: 220 13% 13%; /* Muted background */
     --muted-foreground: 0 0% 65%;
-
     --accent: 0 100% 50%; /* Red accent matches primary */
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 220 13% 20%; /* Subtle borders */
     --input: 220 13% 16%; /* Input backgrounds */
     --ring: 0 100% 50%; /* Red focus rings */
-
     --radius: 0.75rem;
-
     /* AKITA brand gradients and effects */
     --gradient-primary: linear-gradient(135deg, hsl(0 100% 50%), hsl(0 80% 45%));
     --gradient-card: linear-gradient(145deg, hsl(220 13% 11%), hsl(220 13% 13%));
+    --gradient-sidebar: linear-gradient(135deg, #23242a 0%, #23242a 100%);
     --shadow-glow: 0 0 20px hsl(0 100% 50% / 0.3);
     --shadow-card: 0 4px 20px hsl(220 13% 5% / 0.5);
-    
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
     /* Sidebar colors */
     --sidebar-background: 220 13% 11%;
     --sidebar-foreground: 0 0% 95%;
@@ -57,6 +48,43 @@
     --sidebar-border: 220 13% 20%;
     --sidebar-ring: 0 100% 50%;
   }
+}
+
+/* Sidebar gradient utility */
+.sidebar-gradient {
+  background: var(--gradient-sidebar);
+}
+
+/* Sidebar font utility */
+.sidebar-font {
+  font-family: 'Inter', Arial, sans-serif;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+
+/* Sidebar menu button universal hover/active effect */
+.sidebar-menu-btn,
+.sidebar-menu-btn:focus,
+.sidebar-menu-btn:active {
+  transition: background 0.18s, color 0.18s;
+  color: #fff;
+  background: none;
+}
+.sidebar-menu-btn:hover,
+.sidebar-menu-btn.active,
+.sidebar-menu-btn[aria-current="page"] {
+  background: rgba(234,0,42,0.18) !important;
+  color: #fff !important;
+}
+
+/* Sidebar section title utility */
+.sidebar-section-title {
+  color: #ea002a;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  margin-top: 1.2rem;
 }
 
 @layer base {
