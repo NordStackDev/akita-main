@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { softDeleteCompany } from "@/lib/soft-delete";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +16,7 @@ interface Company {
   id: string;
   name: string;
   organizations?: any[];
+  deleted_at?: string;
 }
 
 interface CompanyDeleteDialogProps {
@@ -49,14 +50,12 @@ const CompanyDeleteDialog: React.FC<CompanyDeleteDialogProps> = ({
         return;
       }
 
-      const { error } = await supabase
-        .from("companies")
-        .delete()
-        .eq("id", company.id);
+      // Soft delete the company
+      const { error } = await softDeleteCompany(company.id);
 
       if (error) throw error;
 
-      toast.success("Firma slettet succesfuldt");
+      toast.success("Firma slettet (soft delete)");
       onCompanyDeleted();
       onOpenChange(false);
     } catch (error: any) {
@@ -85,9 +84,9 @@ const CompanyDeleteDialog: React.FC<CompanyDeleteDialogProps> = ({
             )}
             {(!company?.organizations ||
               company.organizations.length === 0) && (
-              <span className="text-red-600 font-medium">
-                Denne handling kan ikke fortrydes.
-              </span>
+               <span className="text-orange-600 font-medium">
+                 Firmaet vil blive soft slettet og kan gendannes.
+               </span>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>

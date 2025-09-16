@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { softDeleteOrganization } from "@/lib/soft-delete";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,10 +39,7 @@ const OrganizationDeleteDialog: React.FC<OrganizationDeleteDialogProps> = ({
     setLoading(true);
     try {
       // Soft delete organisationen
-      const { error: orgError } = await supabase
-        .from("organizations")
-        .update({ deleted_at: new Date().toISOString() })
-        .eq("id", organization.id);
+      const { error: orgError } = await softDeleteOrganization(organization.id);
       if (orgError) throw orgError;
       toast.success("Organisation slettet (soft delete)");
       onOrganizationDeleted();
@@ -61,10 +58,10 @@ const OrganizationDeleteDialog: React.FC<OrganizationDeleteDialogProps> = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Bekræft sletning</AlertDialogTitle>
-          <AlertDialogDescription>
-            Er du sikker på, at du vil slette organisationen{" "}
-            <b>{organization?.name}</b>? Denne handling kan ikke fortrydes.
-          </AlertDialogDescription>
+           <AlertDialogDescription>
+             Er du sikker på, at du vil slette organisationen{" "}
+             <b>{organization?.name}</b>? Organisationen vil blive soft slettet og kan gendannes.
+           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>Annuller</AlertDialogCancel>

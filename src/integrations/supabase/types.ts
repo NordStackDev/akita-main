@@ -148,6 +148,7 @@ export type Database = {
           company_type: string | null
           created_at: string
           cvr: string | null
+          deleted_at: string | null
           id: string
           logo_url: string | null
           name: string
@@ -163,6 +164,7 @@ export type Database = {
           company_type?: string | null
           created_at?: string
           cvr?: string | null
+          deleted_at?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -178,6 +180,7 @@ export type Database = {
           company_type?: string | null
           created_at?: string
           cvr?: string | null
+          deleted_at?: string | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -373,6 +376,7 @@ export type Database = {
           cpr_number: string | null
           created_at: string
           customer_type: string | null
+          deleted_at: string | null
           email: string | null
           first_name: string | null
           gender: string | null
@@ -388,6 +392,7 @@ export type Database = {
           cpr_number?: string | null
           created_at?: string
           customer_type?: string | null
+          deleted_at?: string | null
           email?: string | null
           first_name?: string | null
           gender?: string | null
@@ -403,6 +408,7 @@ export type Database = {
           cpr_number?: string | null
           created_at?: string
           customer_type?: string | null
+          deleted_at?: string | null
           email?: string | null
           first_name?: string | null
           gender?: string | null
@@ -560,6 +566,7 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           latitude: number | null
           longitude: number | null
@@ -574,6 +581,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null
@@ -588,6 +596,7 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null
@@ -646,6 +655,7 @@ export type Database = {
         Row: {
           country: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           name: string
           organization_id: string
@@ -654,6 +664,7 @@ export type Database = {
         Insert: {
           country?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name: string
           organization_id: string
@@ -662,6 +673,7 @@ export type Database = {
         Update: {
           country?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name?: string
           organization_id?: string
@@ -688,6 +700,7 @@ export type Database = {
         Row: {
           company_id: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           logo_url: string | null
           name: string
@@ -697,6 +710,7 @@ export type Database = {
         Insert: {
           company_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -706,6 +720,7 @@ export type Database = {
         Update: {
           company_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -752,6 +767,7 @@ export type Database = {
       products: {
         Row: {
           created_at: string
+          deleted_at: string | null
           id: string
           name: string
           points_value: number | null
@@ -759,6 +775,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name: string
           points_value?: number | null
@@ -766,6 +783,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name?: string
           points_value?: number | null
@@ -837,6 +855,7 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string
+          deleted_at: string | null
           id: string
           name: string
           office_id: string | null
@@ -844,6 +863,7 @@ export type Database = {
         Insert: {
           client_id: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name: string
           office_id?: string | null
@@ -851,6 +871,7 @@ export type Database = {
         Update: {
           client_id?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name?: string
           office_id?: string | null
@@ -935,18 +956,21 @@ export type Database = {
       regions: {
         Row: {
           created_at: string
+          deleted_at: string | null
           id: string
           name: string
           organization_id: string
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name: string
           organization_id: string
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name?: string
           organization_id?: string
@@ -969,6 +993,7 @@ export type Database = {
           customer_gender: string | null
           customer_id: string
           date: string
+          deleted_at: string | null
           id: string
           location_id: string | null
           office_id: string | null
@@ -987,6 +1012,7 @@ export type Database = {
           customer_gender?: string | null
           customer_id: string
           date?: string
+          deleted_at?: string | null
           id?: string
           location_id?: string | null
           office_id?: string | null
@@ -1005,6 +1031,7 @@ export type Database = {
           customer_gender?: string | null
           customer_id?: string
           date?: string
+          deleted_at?: string | null
           id?: string
           location_id?: string | null
           office_id?: string | null
@@ -1161,6 +1188,7 @@ export type Database = {
       teams: {
         Row: {
           created_at: string
+          deleted_at: string | null
           department_id: string | null
           id: string
           name: string
@@ -1168,6 +1196,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           department_id?: string | null
           id?: string
           name: string
@@ -1175,6 +1204,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           department_id?: string | null
           id?: string
           name?: string
@@ -1657,6 +1687,7 @@ export type Database = {
           birth_date: string | null
           channel_type: string | null
           created_at: string
+          deleted_at: string | null
           email: string
           first_login_completed: boolean | null
           first_name: string | null
@@ -1681,6 +1712,7 @@ export type Database = {
           birth_date?: string | null
           channel_type?: string | null
           created_at?: string
+          deleted_at?: string | null
           email: string
           first_login_completed?: boolean | null
           first_name?: string | null
@@ -1705,6 +1737,7 @@ export type Database = {
           birth_date?: string | null
           channel_type?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string
           first_login_completed?: boolean | null
           first_name?: string | null

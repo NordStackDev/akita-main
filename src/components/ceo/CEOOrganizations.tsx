@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { softDeleteOrganization } from "@/lib/soft-delete";
 import { Badge } from "@/components/ui/badge";
 import { 
   Building, 
@@ -80,33 +81,37 @@ export const CEOOrganizations = () => {
       const company = profile.organizations.companies;
       setCompanyInfo(company);
 
-      // Get all organizations for this company
+      // Get all organizations for this company (excluding soft deleted)
       const { data: orgs } = await supabase
         .from("organizations")
         .select(`
           id,
           name,
           company_id,
-          created_at
+          created_at,
+          deleted_at
         `)
         .eq("company_id", company.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: true });
 
       if (orgs) {
         // Get member count and sales data for each organization
         const orgsWithStats = await Promise.all(
           orgs.map(async (org) => {
-            // Get member count
+            // Get member count (excluding soft deleted users)
             const { data: members } = await supabase
               .from("users")
               .select("id")
-              .eq("organization_id", org.id);
+              .eq("organization_id", org.id)
+              .is("deleted_at", null);
 
-            // Get total sales for this organization
+            // Get total sales for this organization (excluding soft deleted sales)
             const { data: sales } = await supabase
               .from("sales")
               .select("id")
-              .in("user_id", members?.map(m => m.id) || []);
+              .in("user_id", members?.map(m => m.id) || [])
+              .is("deleted_at", null);
 
             return {
               ...org,
@@ -165,21 +170,19 @@ export const CEOOrganizations = () => {
   };
 
   const handleDeleteOrganization = async (orgId: string, orgName: string) => {
-    if (!confirm(`Er du sikker på at du vil slette "${orgName}"? Dette kan ikke fortrydes.`)) {
+    if (!confirm(`Er du sikker på at du vil slette "${orgName}"? Organisationen vil blive soft slettet og kan gendannes.`)) {
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from("organizations")
-        .delete()
-        .eq("id", orgId);
+      // Soft delete the organization
+      const { error } = await softDeleteOrganization(orgId);
 
       if (error) throw error;
 
       toast({
         title: "Organisation slettet",
-        description: `${orgName} er blevet slettet`,
+        description: `${orgName} er blevet soft slettet og kan gendannes`,
       });
 
       fetchOrganizationsData();

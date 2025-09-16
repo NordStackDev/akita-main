@@ -35,6 +35,7 @@ interface User {
   last_name: string;
   name: string;
   email: string;
+  deleted_at?: string;
   user_roles: {
     name: string;
     level: number;
@@ -86,12 +87,13 @@ export const OrganizationManagementPage = () => {
         .from("companies")
         .select(
           `
-          id, name, logo_url, cvr, address, city, postal_code, phone, company_type, created_at,
-          organizations (id, name, created_at, company_id,
-            users (id, first_name, last_name, name, email, user_roles(name, level))
+          id, name, logo_url, cvr, address, city, postal_code, phone, company_type, created_at, deleted_at,
+          organizations!inner (id, name, created_at, company_id, deleted_at,
+            users!inner (id, first_name, last_name, name, email, deleted_at, user_roles(name, level))
           )
         `
         )
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
       if (companiesError) {
@@ -100,7 +102,18 @@ export const OrganizationManagementPage = () => {
         return;
       }
 
-      setCompanies(companiesData || []);
+      // Filter out soft deleted organizations and users from the response
+      const filteredCompanies = (companiesData || []).map(company => ({
+        ...company,
+        organizations: (company.organizations || [])
+          .filter(org => !org.deleted_at)
+          .map(org => ({
+            ...org,
+            users: (org.users || []).filter(user => !user.deleted_at)
+          }))
+      }));
+      
+      setCompanies(filteredCompanies);
     } catch (err) {
       console.error("Error fetching companies:", err);
       setError("Uventet fejl ved hentning af firmaer.");
