@@ -1,3 +1,4 @@
+import "./waves.css";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { OnboardingPage } from "./OnboardingPage";
+import "./waves.css";
 
 interface LoginPageProps {
   onLogin: (user: any) => void;
@@ -67,7 +69,7 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
           try {
             await supabase.rpc('attach_auth_user_to_invited_user');
           } catch (error) {
-            console.error('Error attaching user:', error);
+            // fejl ved attach_auth_user_to_invited_user ignoreres
           }
 
           // Check if this is a first-time login requiring onboarding
@@ -163,74 +165,75 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md akita-card border-border">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 akita-gradient rounded-xl flex items-center justify-center">
-            <span className="text-2xl font-bold text-white">A</span>
-          </div>
-          <CardTitle className="text-2xl font-bold text-foreground">
-            Log ind til AKITA
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Log ind med din email og engangskode/adgangskode
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 bg-input border-border"
-                  placeholder="din@email.dk"
-                  required
-                />
-              </div>
+    <div className="min-h-screen flex items-center justify-center relative bg-neutral-900">
+      {/* Watermark fjernet – kun tekst under kortet */}
+      <div className="relative z-20 w-full max-w-md flex flex-col items-center">
+        <Card className="w-full akita-card border-border">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 akita-gradient rounded-xl  flex items-center justify-center">
+              <span className="text-2xl font-bold text-white">A</span>
             </div>
-
-            <div>
-              <Label htmlFor="password" className="text-sm font-medium">
-                Adgangskode / Engangskode
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 bg-input border-border"
-                  placeholder="Adgangskode eller engangskode"
-                  required
-                />
+            <CardTitle className="text-2xl font-bold text-foreground">
+              Log ind til AKITA
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Log ind med din email og adgangskode.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 bg-input border-border"
+                    placeholder="din@email.dk"
+                    required
+                  />
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Første gang? Brug din 8-tegns engangskode fra invitationsmailen
-              </p>
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full akita-gradient hover:akita-glow akita-transition"
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
-              Log ind
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <div>
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Adgangskode
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 bg-input border-border"
+                    placeholder="Adgangskode"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Første gang? Du skal være inviteret af en administrator, hvis dette er gennemført tjek gerne din e-mail.
+                </p>
+              </div>
+              <Button
+                type="submit"
+                className="w-full akita-gradient hover:akita-glow akita-transition"
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Log ind
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+        <span className="mt-6 text-xs md:text-sm text-white/50 tracking-widest font-semibold">With Nordstack by Nordstack</span>
+      </div>
     </div>
   );
-};
+}

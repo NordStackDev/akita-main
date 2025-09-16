@@ -198,7 +198,7 @@ export const Dashboard = () => {
         <div className="mb-4">
           <BackgroundGradient className="rounded-2xl overflow-hidden shadow-lg p-0">
             <div className="relative">
-              <div className="absolute inset-0 z-0"></div>
+              <div className="absolute inset-0 z-0 bg-muted"></div>
               <div className="relative flex items-center gap-4 px-8 py-7 z-10">
                 <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-md border-4 border-white">
                   <Avatar className="h-14 w-14">
@@ -344,13 +344,13 @@ export const Dashboard = () => {
                 : "Admin"}{" "}
               funktioner
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <InviteUserForm
                 organizationId={dashboardData.organizationId}
                 allowedRoles={["admin", "sales"]}
               />
               <InviteCEOForm organizationId={dashboardData.organizationId} />
-            </div>
+            </div> */}
           </div>
         )}
 
