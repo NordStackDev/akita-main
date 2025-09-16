@@ -13,7 +13,7 @@ import {
   Crown,
   Building,
   UserPlus,
-  Briefcase
+  Briefcase,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -50,7 +50,10 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
-  const [userRole, setUserRole] = useState<{ level: number; name?: string } | null>(null);
+  const [userRole, setUserRole] = useState<{
+    level: number;
+    name?: string;
+  } | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
 
   useEffect(() => {
@@ -61,70 +64,94 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
     try {
       // Load user role
       const { data: roleData } = await supabase
-        .from('users')
-        .select(`
+        .from("users")
+        .select(
+          `
           role_id,
           user_roles!inner(level, name)
-        `)
-        .eq('id', user.id)
+        `
+        )
+        .eq("id", user.id)
         .single();
 
       if (roleData) {
-        setUserRole({ 
+        setUserRole({
           level: roleData.user_roles.level,
-          name: roleData.user_roles.name 
+          name: roleData.user_roles.name,
         });
       }
 
       // Load profile data
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('profile_image_url')
-        .eq('user_id', user.id)
+        .from("profiles")
+        .select("profile_image_url")
+        .eq("user_id", user.id)
         .single();
 
       setProfileData(profile);
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error("Error loading user data:", error);
     }
   };
 
-  const navigationItems = userRole && userRole.level >= 6 && userRole.name !== 'developer' 
-    ? [
-        { title: "Forside", url: "/app/dashboard", icon: Home },
-      ]
-    : [
-        { title: "Dashboard", url: "/app/dashboard", icon: Home },
-        { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
-        { title: "Lokationer", url: "/app/locations", icon: MapPin },
-        { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
-        { title: "Team", url: "/app/team", icon: Users },
-        // Show tracking for teamlead and above (level <= 5) or developer
-        ...(userRole && (userRole.level <= 5 || userRole.name === 'developer') ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }] : []),
-      ];
+  const navigationItems =
+    userRole && userRole.level >= 6 && userRole.name !== "developer"
+      ? [{ title: "Forside", url: "/app/dashboard", icon: Home }]
+      : [
+          { title: "Dashboard", url: "/app/dashboard", icon: Home },
+          { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
+          { title: "Lokationer", url: "/app/locations", icon: MapPin },
+          { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
+          { title: "Team", url: "/app/team", icon: Users },
+          // Show tracking for teamlead and above (level <= 5) or developer
+          ...(userRole && (userRole.level <= 5 || userRole.name === "developer")
+            ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }]
+            : []),
+        ];
 
   // CEO specific navigation items
-  const ceoItems = userRole && (userRole.name === 'ceo' || userRole.name === 'CEO') ? [
-    { title: "Team Management", url: "/app/ceo/team", icon: Users },
-    { title: "Organisationer", url: "/app/ceo/organizations", icon: Building },
-    { title: "Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
-    { title: "Virksomhed", url: "/app/ceo/company", icon: Briefcase },
-  ] : [];
+  const ceoItems =
+    userRole && (userRole.name === "ceo" || userRole.name === "CEO")
+      ? [
+          { title: "Team Management", url: "/app/ceo/team", icon: Users },
+          {
+            title: "Organisationer",
+            url: "/app/ceo/organizations",
+            icon: Building,
+          },
+          { title: "Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
+          { title: "Virksomhed", url: "/app/ceo/company", icon: Briefcase },
+        ]
+      : [];
+
+  // Admin specific navigation items
+  const adminItems =
+    userRole && (userRole.level <= 2 || userRole.name === "developer")
+      ? [
+          {
+            title: "Organisation Administration",
+            url: "/app/admin/organizations",
+            icon: Building,
+          },
+          // Add more admin links here as needed
+        ]
+      : [];
 
   const isActive = (path: string) => currentPath === path;
   const isExpanded = navigationItems.some((item) => isActive(item.url));
   const isCeoExpanded = ceoItems.some((item) => isActive(item.url));
 
   const getNavClassName = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50";
+    isActive
+      ? "bg-accent text-accent-foreground font-medium"
+      : "hover:bg-accent/50";
 
-  const userName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Bruger';
+  const userName =
+    user?.user_metadata?.first_name || user?.email?.split("@")[0] || "Bruger";
   const userInitials = userName.charAt(0).toUpperCase();
 
   return (
-    <Sidebar
-      className={state === "collapsed" ? "w-14" : "w-60"}
-    >
+    <Sidebar className={state === "collapsed" ? "w-14" : "w-60"}>
       <SidebarHeader className="border-b border-border">
         <div className="flex items-center gap-2 px-4 py-3">
           <div className="w-8 h-8 akita-gradient rounded-lg flex items-center justify-center">
@@ -144,10 +171,12 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end 
-                      className={({ isActive }) => getNavClassName({ isActive })}
+                    <NavLink
+                      to={item.url}
+                      end
+                      className={({ isActive }) =>
+                        getNavClassName({ isActive })
+                      }
                     >
                       <item.icon className="w-4 h-4" />
                       {state !== "collapsed" && <span>{item.title}</span>}
@@ -171,10 +200,42 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
                 {ceoItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <NavLink 
-                        to={item.url} 
-                        end 
-                        className={({ isActive }) => getNavClassName({ isActive })}
+                      <NavLink
+                        to={item.url}
+                        end
+                        className={({ isActive }) =>
+                          getNavClassName({ isActive })
+                        }
+                      >
+                        <item.icon className="w-4 h-4" />
+                        {state !== "collapsed" && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Admin Section */}
+        {adminItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <User className="w-4 h-4 text-blue-500" />
+              {state !== "collapsed" && "Admin"}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className={({ isActive }) =>
+                          getNavClassName({ isActive })
+                        }
                       >
                         <item.icon className="w-4 h-4" />
                         {state !== "collapsed" && <span>{item.title}</span>}
@@ -192,22 +253,37 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
         <div className="p-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start p-2 h-auto">
+              <Button
+                variant="ghost"
+                className="w-full justify-start p-2 h-auto"
+              >
                 <div className="flex items-center gap-2 min-w-0">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={profileData?.profile_image_url || undefined} />
-                    <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
+                    <AvatarImage
+                      src={profileData?.profile_image_url || undefined}
+                    />
+                    <AvatarFallback className="text-xs">
+                      {userInitials}
+                    </AvatarFallback>
                   </Avatar>
                   {state !== "collapsed" && (
                     <div className="flex flex-col items-start min-w-0">
-                      <span className="text-sm font-medium truncate">{userName}</span>
-                      <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+                      <span className="text-sm font-medium truncate">
+                        {userName}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {user?.email}
+                      </span>
                     </div>
                   )}
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-card border-border" align="end" side="top">
+            <DropdownMenuContent
+              className="w-56 bg-card border-border"
+              align="end"
+              side="top"
+            >
               <DropdownMenuLabel className="text-foreground">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{userName}</p>
@@ -224,7 +300,7 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
                 </NavLink>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border" />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={onLogout}
                 className="text-foreground hover:bg-secondary cursor-pointer"
               >
