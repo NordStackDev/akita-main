@@ -87,11 +87,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Create user account with temporary password
     const temporaryPassword = `temp_${invitationCode}_${Date.now()}`;
     
-    // Get role ID by name
+    // Get role ID by name - handle case insensitive lookup
     const { data: targetRole, error: roleError } = await supabase
       .from('user_roles')
-      .select('id')
-      .eq('name', role)
+      .select('id, name')
+      .ilike('name', role)
       .single();
 
     if (roleError || !targetRole) {
