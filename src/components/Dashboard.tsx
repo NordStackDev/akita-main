@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { CEODashboard } from "@/components/ceo/CEODashboard";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 
 export const Dashboard = () => {
   const { user } = useAuth();
@@ -183,6 +184,11 @@ export const Dashboard = () => {
   // Show CEO Dashboard for CEOs
   if (dashboardData.isCEO) {
     return <CEODashboard />;
+  }
+
+  // Show Admin Dashboard for Admins (but not developers)
+  if (dashboardData.isAdmin && dashboardData.userProfile?.user_roles?.name !== "developer") {
+    return <AdminDashboard />;
   }
 
   return (

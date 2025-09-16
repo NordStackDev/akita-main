@@ -149,7 +149,11 @@ export const InviteUserForm = ({
                 >
                   {allowedRoles.map((r) => (
                     <option key={r} value={r}>
-                      {r === "admin" ? "Admin" : "Sælger"}
+                      {r === "admin" 
+                        ? "Admin" 
+                        : r === "sales" 
+                        ? "Sælger"
+                        : r.charAt(0).toUpperCase() + r.slice(1)}
                     </option>
                   ))}
                 </select>
