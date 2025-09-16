@@ -155,6 +155,8 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const developerItems =
     userRole && userRole.name === "developer"
       ? [
+          // System monitoring (developer only)
+          { title: "System Overvågning", url: "/app/developer/monitoring", icon: Shield },
           // All CEO functions
           { title: "CEO Team Management", url: "/app/ceo/team", icon: Users },
           {
@@ -164,7 +166,6 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
           },
           { title: "CEO Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
           { title: "CEO Virksomhed", url: "/app/ceo/company", icon: Briefcase },
-          // Additional admin/management functions would go here
         ]
       : [];
 

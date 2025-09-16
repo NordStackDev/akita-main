@@ -19,6 +19,7 @@ import { CEOOrganizations } from "@/components/ceo/CEOOrganizations";
 import { CEOInviteSalesperson } from "@/components/ceo/CEOInviteSalesperson";
 import { CEOCompany } from "@/components/ceo/CEOCompany";
 import OrganizationManagementPage from "@/components/admin/OrganizationManagementPage";
+import { SystemMonitoringPage } from "@/components/developer/SystemMonitoringPage";
 
 interface UserRole {
   level: number;
@@ -166,6 +167,11 @@ export const AkitaApp = () => {
           <Route
             path="/admin/organizations"
             element={<OrganizationManagementPage />}
+          />
+          {/* Developer Routes */}
+          <Route
+            path="/developer/monitoring"
+            element={<SystemMonitoringPage />}
           />
           <Route
             path="/auth"
