@@ -202,36 +202,36 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const isAdminExpanded = adminItems.some((item) => isActive(item.url));
   const isDeveloperExpanded = developerItems.some((item) => isActive(item.url));
 
-  const getNavClassName = ({ isActive }: { isActive: boolean }) => {
-    const baseClass = "sidebar-menu-button text-white akita-transition";
-    return isActive ? `${baseClass} active` : baseClass;
-  };
+  const getNavClassName = ({ isActive }: { isActive: boolean }) =>
+    isActive
+      ? "bg-accent text-accent-foreground font-medium"
+      : "hover:bg-accent/50";
 
   const userName =
     user?.user_metadata?.first_name || user?.email?.split("@")[0] || "Bruger";
   const userInitials = userName.charAt(0).toUpperCase();
 
   return (
-    <Sidebar className={`akita-sidebar ${state === "collapsed" ? "w-14" : "w-60"}`}>
-      <SidebarHeader className="border-b border-sidebar-border">
+    <Sidebar className={state === "collapsed" ? "w-14" : "w-60"}>
+      <SidebarHeader className="border-b border-border">
         <div className="flex items-center gap-2 px-4 py-3">
-          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 akita-gradient rounded-lg flex items-center justify-center">
             <span className="text-sm font-bold text-white">A</span>
           </div>
           {state !== "collapsed" && (
-            <span className="text-lg font-bold text-white">AKITA</span>
+            <span className="text-lg font-bold text-foreground">AKITA</span>
           )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white font-medium">Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="sidebar-menu-button">
+                  <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
                       end
@@ -252,15 +252,15 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
         {/* CEO Section */}
         {ceoItems.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2 text-white font-medium">
-              <Crown className="w-4 h-4 text-yellow-300" />
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-yellow-500" />
               {state !== "collapsed" && "CEO"}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {ceoItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="sidebar-menu-button">
+                    <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
                         end
@@ -282,15 +282,15 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
         {/* Admin Section */}
         {adminItems.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2 text-white font-medium">
-              <User className="w-4 h-4 text-blue-300" />
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <User className="w-4 h-4 text-blue-500" />
               {state !== "collapsed" && "Admin"}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="sidebar-menu-button">
+                    <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
                         end
@@ -312,15 +312,15 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
         {/* Developer Section - Full System Access */}
         {developerItems.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="flex items-center gap-2 text-white font-medium">
-              <Code className="w-4 h-4 text-green-300" />
+            <SidebarGroupLabel className="flex items-center gap-2">
+              <Code className="w-4 h-4 text-green-500" />
               {state !== "collapsed" && "Developer Access"}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {developerItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="sidebar-menu-button">
+                    <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
                         end

@@ -47,15 +47,15 @@
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* AKITA sidebar design - #ea002a med hvid tekst */
-    --sidebar-background: 351 100% 46%; /* #ea002a */
-    --sidebar-foreground: 0 0% 100%; /* Hvid tekst #ffffff */
-    --sidebar-primary: 0 0% 100%; /* Hvid for aktive elementer */
-    --sidebar-primary-foreground: 351 100% 46%; /* Rød tekst på hvide elementer */
-    --sidebar-accent: 351 100% 35%; /* Mørkere rød for hover */
-    --sidebar-accent-foreground: 0 0% 100%; /* Hvid tekst på hover */
-    --sidebar-border: 225 15% 23%; /* #323743 borders */
-    --sidebar-ring: 0 0% 100%; /* Hvide focus rings */
+    /* Modern sidebar colors */
+    --sidebar-background: 225 15% 9%;
+    --sidebar-foreground: 225 15% 23%;
+    --sidebar-primary: 351 100% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 225 15% 14%;
+    --sidebar-accent-foreground: 225 15% 90%;
+    --sidebar-border: 225 15% 16%;
+    --sidebar-ring: 351 100% 46%;
   }
 }
 
@@ -84,30 +84,6 @@
   
   .akita-transition {
     transition: var(--transition-smooth);
-  }
-
-  /* AKITA Sidebar Custom Styles */
-  .akita-sidebar {
-    background: #ea002a;
-    box-shadow: 4px 0 16px rgba(50, 55, 67, 0.3);
-    border-right: 1px solid #323743;
-  }
-
-  .akita-sidebar .sidebar-menu-button {
-    border-radius: 8px;
-    margin: 2px 4px;
-    transition: all 0.2s ease-in-out;
-  }
-
-  .akita-sidebar .sidebar-menu-button:hover {
-    background: rgba(0, 0, 0, 0.2);
-    transform: translateX(2px);
-  }
-
-  .akita-sidebar .sidebar-menu-button.active {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 }
 
