@@ -110,36 +110,57 @@ const handler = async (req: Request): Promise<Response> => {
     // Create user account with temporary password
     const temporaryPassword = `temp_${invitationCode}_${Date.now()}`;
     
-    // Normalize and resolve target role id robustly (handle aliases and duplicates)
+    // Resolve role id robustly: fetch all roles and match by preferred names
     const normalizedRole = (role || '').toLowerCase().trim();
-    const roleAliases: Record<string, string> = {
-      sales: 'seller',
-      sælger: 'seller',
-      salesman: 'seller',
-      salesperson: 'seller',
-      ceo: 'ceo',
-      administrator: 'admin',
+    const roleAliases: Record<string, string[]> = {
+      sales: ['seller', 'sales'],
+      sælger: ['seller', 'sales'],
+      salesman: ['seller', 'sales'],
+      salesperson: ['seller', 'sales'],
+      admin: ['admin'],
+      ceo: ['ceo'],
+      developer: ['developer'],
     };
-    const lookupRole = roleAliases[normalizedRole] ?? normalizedRole;
+    const preferredNames = [
+      ...(roleAliases[normalizedRole] ?? [normalizedRole]),
+      // global fallbacks
+      'seller',
+      'sales',
+      'admin',
+      'developer',
+      'ceo',
+    ];
 
-    const { data: rolesList, error: roleQueryError } = await supabase
+    const { data: allRoles, error: rolesFetchError } = await supabase
       .from('user_roles')
-      .select('id, name, level')
-      .ilike('name', lookupRole)
-      .order('level', { ascending: true })
-      .limit(1);
+      .select('id, name, level');
 
-    if (roleQueryError) {
-      console.error(`Error querying role '${lookupRole}':`, roleQueryError);
-      return new Response(JSON.stringify({ error: `Failed to lookup role '${lookupRole}'` }), {
+    if (rolesFetchError || !allRoles || allRoles.length === 0) {
+      console.error('Error fetching roles:', rolesFetchError);
+      return new Response(JSON.stringify({ error: 'Failed to load roles' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const targetRoleId = rolesList?.[0]?.id;
+    const map = new Map<string, { id: string; level: number }>();
+    for (const r of allRoles) {
+      map.set(String(r.name).toLowerCase(), { id: r.id, level: r.level });
+    }
+
+    let targetRoleId: string | undefined;
+    let bestLevel = Number.MAX_SAFE_INTEGER;
+    for (const name of preferredNames) {
+      const found = map.get(name);
+      if (found) {
+        if (found.level < bestLevel) {
+          bestLevel = found.level;
+          targetRoleId = found.id;
+        }
+      }
+    }
+
     if (!targetRoleId) {
-      console.error(`Role not found for lookup '${lookupRole}' (original: '${role}')`);
       return new Response(JSON.stringify({ error: `Role '${role}' not found. Please create it in user_roles.` }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -259,7 +280,7 @@ const verifyLink = (linkData as any)?.properties?.action_link || (linkData as an
 // Send invitation email with verification link
 const isCEO = role === 'ceo';
 const emailResponse = await resend.emails.send({
-  from: 'AKITA <noreply@resend.dev>',
+  from: 'AKITA <onboarding@resend.dev>',
   to: [email],
   subject: isCEO ? '👑 CEO invitation til AKITA – Bekræft din konto' : 'Velkommen til AKITA – Bekræft din konto',
   html: `
