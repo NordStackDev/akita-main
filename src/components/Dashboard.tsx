@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { InviteUserForm } from "@/components/admin/InviteUserForm";
+import { InviteCEOForm } from "@/components/admin/InviteCEOForm";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -291,12 +292,13 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Admin Section */}
-      {dashboardData.isAdmin && dashboardData.organizationId && (
+      {/* Admin Section - Only show for non-CEO admins */}
+      {dashboardData.isAdmin && !dashboardData.isCEO && dashboardData.organizationId && (
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-foreground mb-4">Admin funktioner</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <InviteUserForm organizationId={dashboardData.organizationId} />
+            <InviteCEOForm organizationId={dashboardData.organizationId} />
           </div>
         </div>
       )}
