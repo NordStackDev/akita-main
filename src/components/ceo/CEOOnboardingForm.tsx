@@ -55,7 +55,7 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         throw new Error("CEO rolle ikke fundet");
       }
 
-      // Ensure current user has CEO role before inserting organization (required by RLS)
+      // Ensure current user has CEO role before creating organization
       const { error: setRoleError } = await supabase
         .from("users")
         .update({
@@ -67,45 +67,16 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         throw setRoleError;
       }
 
-      // Create new organization for the CEO (now allowed by RLS)
-      const { data: organization, error: orgError } = await supabase
-        .from("organizations")
-        .insert({
-          name: formData.companyName,
-          primary_color: "#ff0000",
-          secondary_color: "#1c1c1c"
-        })
-        .select()
-        .single();
+      // Use the new secure function to create organization
+      const { data: organizationId, error: orgError } = await supabase
+        .rpc("create_organization_for_current_user", {
+          _name: formData.companyName,
+          _primary_color: "#ff0000",
+          _secondary_color: "#1c1c1c"
+        });
 
       if (orgError) {
         throw orgError;
-      }
-
-      // Update user with organization and mark onboarding complete
-      const { error: userError } = await supabase
-        .from("users")
-        .update({
-          organization_id: organization.id,
-          first_login_completed: true
-        })
-        .eq("id", user.id);
-
-      if (userError) {
-        throw userError;
-      }
-
-      // Create or update profile
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .upsert({
-          user_id: user.id,
-          organization_id: organization.id,
-          role_id: ceoRole.id
-        });
-
-      if (profileError) {
-        throw profileError;
       }
 
       toast({

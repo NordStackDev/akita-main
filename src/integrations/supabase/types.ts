@@ -1701,6 +1701,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_organization_for_current_user: {
+        Args: {
+          _name: string
+          _primary_color?: string
+          _secondary_color?: string
+        }
+        Returns: string
+      }
       generate_invitation_code: {
         Args: Record<PropertyKey, never>
         Returns: string
