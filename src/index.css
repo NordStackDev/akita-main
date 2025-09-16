@@ -6,56 +6,56 @@
 
 @layer base {
   :root {
-    /* Dark theme base colors */
-    --background: 220 13% 8%; /* Deep dark gray #141414 */
-    --foreground: 0 0% 95%; /* Light text */
+    /* Modern dark theme with AKITA branding */
+    --background: 225 15% 8%; /* Deep modern dark */
+    --foreground: 225 15% 23%; /* Custom text color #323743 */
 
-    --card: 220 13% 11%; /* Slightly lighter than background #1c1c1c */
-    --card-foreground: 0 0% 95%;
+    --card: 225 15% 10%; /* Card background */
+    --card-foreground: 225 15% 23%;
 
-    --popover: 220 13% 11%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 225 15% 10%;
+    --popover-foreground: 225 15% 23%;
 
-    /* AKITA red brand color */
-    --primary: 0 100% 50%; /* Bright red #ff0000 */
+    /* AKITA brand color - Burger menu color */
+    --primary: 351 100% 46%; /* Custom red #ea002a */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 13% 16%; /* Medium gray for secondary elements */
-    --secondary-foreground: 0 0% 85%;
+    --secondary: 225 15% 12%; /* Modern secondary */
+    --secondary-foreground: 225 15% 85%;
 
-    --muted: 220 13% 13%; /* Muted background */
-    --muted-foreground: 0 0% 65%;
+    --muted: 225 15% 11%; /* Subtle muted */
+    --muted-foreground: 225 15% 65%;
 
-    --accent: 0 100% 50%; /* Red accent matches primary */
+    --accent: 351 100% 46%; /* Accent matches primary */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 20%; /* Subtle borders */
-    --input: 220 13% 16%; /* Input backgrounds */
-    --ring: 0 100% 50%; /* Red focus rings */
+    --border: 225 15% 18%; /* Modern borders */
+    --input: 225 15% 14%; /* Input backgrounds */
+    --ring: 351 100% 46%; /* AKITA red focus rings */
 
     --radius: 0.75rem;
 
-    /* AKITA brand gradients and effects */
-    --gradient-primary: linear-gradient(135deg, hsl(0 100% 50%), hsl(0 80% 45%));
-    --gradient-card: linear-gradient(145deg, hsl(220 13% 11%), hsl(220 13% 13%));
-    --shadow-glow: 0 0 20px hsl(0 100% 50% / 0.3);
-    --shadow-card: 0 4px 20px hsl(220 13% 5% / 0.5);
+    /* AKITA modern gradients and effects */
+    --gradient-primary: linear-gradient(135deg, hsl(351 100% 46%), hsl(351 80% 40%));
+    --gradient-card: linear-gradient(145deg, hsl(225 15% 10%), hsl(225 15% 12%));
+    --shadow-glow: 0 0 20px hsl(351 100% 46% / 0.4);
+    --shadow-card: 0 8px 32px hsl(225 15% 4% / 0.6);
     
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Sidebar colors */
-    --sidebar-background: 220 13% 11%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 0 100% 50%;
+    /* Modern sidebar colors */
+    --sidebar-background: 225 15% 9%;
+    --sidebar-foreground: 225 15% 23%;
+    --sidebar-primary: 351 100% 46%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 13% 16%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 13% 20%;
-    --sidebar-ring: 0 100% 50%;
+    --sidebar-accent: 225 15% 14%;
+    --sidebar-accent-foreground: 225 15% 90%;
+    --sidebar-border: 225 15% 16%;
+    --sidebar-ring: 351 100% 46%;
   }
 }
 
@@ -65,7 +65,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-amaranth;
   }
   
   /* AKITA custom styles */
