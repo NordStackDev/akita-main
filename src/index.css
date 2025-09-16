@@ -47,15 +47,15 @@
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* AKITA red sidebar - #ea002a prominence */
-    --sidebar-background: 351 100% 46%; /* Primary AKITA red background */
-    --sidebar-foreground: 0 0% 100%; /* White text on red */
-    --sidebar-primary: 0 0% 100%; /* White for primary elements */
-    --sidebar-primary-foreground: 351 100% 46%; /* Red text on white */
-    --sidebar-accent: 351 80% 35%; /* Darker red for accents */
-    --sidebar-accent-foreground: 0 0% 100%; /* White text on dark red */
-    --sidebar-border: 351 60% 30%; /* Darker red borders */
-    --sidebar-ring: 0 0% 100%; /* White focus rings */
+    /* AKITA gradient sidebar - matching akita-gradient */
+    --sidebar-background: 351 100% 46%; /* Base red for fallback */
+    --sidebar-foreground: 225 15% 23%; /* Dark text #323743 */
+    --sidebar-primary: 0 0% 0%; /* Black for primary elements */
+    --sidebar-primary-foreground: 0 0% 100%; /* White on black */
+    --sidebar-accent: 351 90% 50%; /* Lighter red for hover */
+    --sidebar-accent-foreground: 225 15% 23%; /* Dark text on light red */
+    --sidebar-border: 351 60% 35%; /* Darker red borders */
+    --sidebar-ring: 225 15% 23%; /* Dark focus rings */
   }
 }
 

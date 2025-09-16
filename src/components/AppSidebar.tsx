@@ -212,7 +212,7 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const userInitials = userName.charAt(0).toUpperCase();
 
   return (
-    <Sidebar className={state === "collapsed" ? "w-14" : "w-60"}>
+    <Sidebar className={`${state === "collapsed" ? "w-14" : "w-60"} akita-gradient`}>
       <SidebarHeader className="border-b border-border">
         <div className="flex items-center gap-2 px-4 py-3">
           <div className="w-8 h-8 akita-gradient rounded-lg flex items-center justify-center">
