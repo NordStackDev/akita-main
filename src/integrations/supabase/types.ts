@@ -141,6 +141,54 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          address: string | null
+          city: string | null
+          company_type: string | null
+          created_at: string
+          cvr: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          phone: string | null
+          postal_code: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          company_type?: string | null
+          created_at?: string
+          cvr?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          postal_code?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          company_type?: string | null
+          created_at?: string
+          cvr?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          postal_code?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customer_bank_info: {
         Row: {
           children: number | null
@@ -638,6 +686,7 @@ export type Database = {
       }
       organizations: {
         Row: {
+          company_id: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -646,6 +695,7 @@ export type Database = {
           secondary_color: string | null
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -654,6 +704,7 @@ export type Database = {
           secondary_color?: string | null
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -661,7 +712,15 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organizations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pins: {
         Row: {
@@ -1696,6 +1755,20 @@ export type Database = {
       attach_auth_user_to_invited_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      create_company_for_current_user: {
+        Args: {
+          _address?: string
+          _city?: string
+          _company_type?: string
+          _cvr?: string
+          _name: string
+          _phone?: string
+          _postal_code?: string
+          _primary_color?: string
+          _secondary_color?: string
+        }
+        Returns: string
       }
       create_developer_user: {
         Args: Record<PropertyKey, never>

@@ -44,7 +44,7 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         return;
       }
 
-      // Get CEO role first so RLS allows organization creation
+      // Get CEO role first
       const { data: ceoRole } = await supabase
         .from("user_roles")
         .select("id")
@@ -55,7 +55,7 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         throw new Error("CEO rolle ikke fundet");
       }
 
-      // Ensure current user has CEO role before creating organization
+      // Ensure current user has CEO role before creating company
       const { error: setRoleError } = await supabase
         .from("users")
         .update({
@@ -67,20 +67,26 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         throw setRoleError;
       }
 
-      // Use the new secure function to create organization
-      const { data: organizationId, error: orgError } = await supabase
-        .rpc("create_organization_for_current_user", {
+      // Use the new secure function to create company and organization
+      const { data: companyId, error: companyError } = await supabase
+        .rpc("create_company_for_current_user", {
           _name: formData.companyName,
+          _cvr: formData.cvr,
+          _address: formData.address,
+          _city: formData.city,
+          _postal_code: formData.postalCode,
+          _phone: formData.phone,
+          _company_type: formData.companyType,
           _primary_color: "#ff0000",
           _secondary_color: "#1c1c1c"
         });
 
-      if (orgError) {
-        throw orgError;
+      if (companyError) {
+        throw companyError;
       }
 
       toast({
-        title: "Organisation oprettet!",
+        title: "Firma oprettet!",
         description: `${formData.companyName} er nu oprettet som ${formData.companyType} firma`,
       });
 
@@ -103,7 +109,7 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2 text-2xl text-foreground">
             <Building className="w-6 h-6" />
-            Opret din organisation
+            Opret dit firma
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             Velkommen! Indtast oplysninger om dit firma for at komme i gang.
@@ -242,7 +248,7 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
               ) : (
                 <Building className="mr-2 h-5 w-5" />
               )}
-              Opret organisation
+              Opret firma
             </Button>
           </form>
         </CardContent>
