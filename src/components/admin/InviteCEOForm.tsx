@@ -84,9 +84,14 @@ export const InviteCEOForm = ({ organizationId }: InviteCEOFormProps) => {
       }
 
       if (data?.success) {
+        if (data?.verifyLink) {
+          try { await navigator.clipboard.writeText(data.verifyLink); } catch {}
+        }
         toast({
-          title: "CEO invitation sendt!",
-          description: `${firstName} ${lastName} har modtaget en CEO invitation på ${email}`,
+          title: data?.emailSent ? "CEO invitation sendt!" : "CEO invitation oprettet",
+          description: data?.emailSent
+            ? `${firstName} ${lastName} har modtaget en CEO invitation på ${email}`
+            : `Email kunne ikke sendes automatisk. Link kopieret: ${data?.verifyLink}`,
         });
 
         // Reset form

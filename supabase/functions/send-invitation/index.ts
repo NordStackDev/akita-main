@@ -303,7 +303,7 @@ if (createUserError) {
 
 // Send invitation email with verification link
 const isCEO = role === 'ceo';
-const emailResponse = await resend.emails.send({
+const { data: emailData, error: emailError } = await resend.emails.send({
   from: 'AKITA <onboarding@resend.dev>',
   to: [email],
   subject: isCEO ? '👑 CEO invitation til AKITA – Bekræft din konto' : 'Velkommen til AKITA – Bekræft din konto',
@@ -354,16 +354,32 @@ const emailResponse = await resend.emails.send({
   `,
 });
 
-console.log('Invitation sent successfully:', emailResponse);
+if (emailError) {
+  console.error('Resend email error:', emailError);
+  return new Response(JSON.stringify({ 
+    success: true,
+    emailSent: false,
+    verifyLink,
+    invitationCode,
+    message: 'Link genereret, men email kunne ikke sendes. Del linket manuelt.' 
+  }), {
+    status: 200,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      invitationCode,
-      message: 'Invitation sent successfully' 
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+console.log('Invitation sent successfully:', emailData);
+
+return new Response(JSON.stringify({ 
+  success: true, 
+  emailSent: true,
+  verifyLink,
+  invitationCode,
+  message: 'Invitation sendt' 
+}), {
+  status: 200,
+  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+});
 
   } catch (error: any) {
     console.error('Error in send-invitation function:', error);

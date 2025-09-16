@@ -89,9 +89,14 @@ export const InviteUserForm = ({
       }
 
       if (data?.success) {
+        if (data?.verifyLink) {
+          try { await navigator.clipboard.writeText(data.verifyLink); } catch {}
+        }
         toast({
-          title: "Invitation sendt!",
-          description: `${firstName} ${lastName} har modtaget en invitation på ${email}`,
+          title: data?.emailSent ? "Invitation sendt!" : "Invitation oprettet",
+          description: data?.emailSent
+            ? `${firstName} ${lastName} har modtaget en invitation på ${email}`
+            : `Email kunne ikke sendes automatisk. Link kopieret: ${data?.verifyLink}`,
         });
 
         // Reset form
