@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -30,79 +29,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  const handleInvitationAcceptance = async (user: User) => {
-    try {
-      // Check if user has an invitation code to process
-      const { data: invitation, error: inviteError } = await supabase
-        .from('invitation_codes')
-        .select('*')
-        .eq('email', user.email?.toLowerCase())
-        .is('used_at', null)
-        .maybeSingle();
-
-      if (inviteError || !invitation || !invitation.invited_role) {
-        return;
-      }
-
-      // Mark invitation as used
-      const { error: markUsedError } = await supabase
-        .from('invitation_codes')
-        .update({ used_at: new Date().toISOString() })
-        .eq('id', invitation.id);
-
-      if (markUsedError) {
-        console.error('Error marking invitation as used:', markUsedError);
-        return;
-      }
-
-      // Assign role to user
-      const { data: roleAssignment, error: roleError } = await supabase.rpc(
-        'assign_user_role',
-        {
-          user_uuid: user.id,
-          role_name: invitation.invited_role,
-          org_id: invitation.invited_org_id,
-        }
-      );
-
-      if (roleError) {
-        console.error('Error assigning role:', roleError);
-        return;
-      }
-
-      // Start onboarding process
-      const { data: onboardingId, error: onboardingError } = await supabase.rpc(
-        'start_user_onboarding',
-        {
-          user_uuid: user.id,
-          role_name: invitation.invited_role,
-          initial_data: {
-            invitationId: invitation.id,
-            firstName: invitation.first_name,
-            lastName: invitation.last_name,
-            phone: invitation.phone,
-            companyName: invitation.company_name,
-            organizationId: invitation.invited_org_id,
-          },
-        }
-      );
-
-      if (onboardingError) {
-        console.error('Error starting onboarding:', onboardingError);
-        return;
-      }
-
-      toast({
-        title: "Invitation accepted!",
-        description: `Welcome! Your role as ${invitation.invited_role} has been assigned.`,
-      });
-
-    } catch (error) {
-      console.error('Error in invitation acceptance:', error);
-    }
-  };
 
   useEffect(() => {
     // Set up auth state listener
@@ -111,13 +37,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
-        // Handle invitation acceptance when user logs in
-        if (event === 'SIGNED_IN' && session?.user) {
-          setTimeout(() => {
-            handleInvitationAcceptance(session.user);
-          }, 0);
-        }
       }
     );
 

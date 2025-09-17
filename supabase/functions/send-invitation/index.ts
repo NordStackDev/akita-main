@@ -301,28 +301,6 @@ if (createUserError) {
 
     const verifyLink = (linkData as any)?.properties?.action_link || (linkData as any)?.properties?.email_otp_link || (linkData as any)?.action_link || `${appOrigin}/app/auth`;
 
-// Store invitation with role and organization data
-const { data: inviteData, error: inviteError } = await supabase
-  .from('invitation_codes')
-  .insert({
-    email: email.toLowerCase(),
-    code: invitationCode,
-    created_by_user_id: user.id,
-    invited_role: role,
-    invited_org_id: role === 'ceo' ? null : targetOrganizationId,
-    first_name: firstName,
-    last_name: lastName,
-    phone: phone || null,
-    company_name: companyName || null,
-  })
-  .select()
-  .single();
-
-if (inviteError) {
-  console.error('Error storing invitation:', inviteError);
-  throw new Error(`Failed to store invitation: ${inviteError.message}`);
-}
-
 // Send invitation email with verification link
 const isCEO = role === 'ceo';
 const { data: emailData, error: emailError } = await resend.emails.send({
@@ -330,67 +308,49 @@ const { data: emailData, error: emailError } = await resend.emails.send({
   to: [email],
   subject: isCEO ? '👑 CEO invitation til AKITA – Bekræft din konto' : 'Velkommen til AKITA – Bekræft din konto',
   html: `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${isCEO ? 'CEO Invitation' : 'Invitation'} til AKITA</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #ff0000, #cc0000); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
         <h1 style="color: white; margin: 0; font-size: 28px;">
-          ${isCEO ? '👑 CEO Invitation' : '🎯 Velkommen til AKITA'}
+          ${isCEO ? '👑 Du er inviteret som CEO til AKITA!' : 'Velkommen til AKITA!'}
         </h1>
+        <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">
+          ${isCEO ? 'Opret din organisation og kom i gang' : 'Din salgsplatform er klar til brug'}
+        </p>
       </div>
       
-      <div style="padding: 30px; background: #f9f9f9; border-radius: 0 0 10px 10px;">
-        <h2 style="color: #333; margin-bottom: 20px;">Hej ${firstName}!</h2>
-        
-        <p style="margin-bottom: 20px;">
+      <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: #333; margin-top: 0;">Hej ${firstName}!</h2>
+        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
           ${isCEO 
-            ? `Du er blevet inviteret som CEO til AKITA. Som CEO kan du oprette din organisation og administrere dit team.`
-            : `Du er blevet inviteret til at deltage i AKITA som ${role === 'admin' ? 'Administrator' : 'Sælger'}.`
+            ? 'Du er blevet inviteret som CEO til AKITA platformen! Som CEO vil du kunne oprette og administrere din organisation efter bekræftelse.' 
+            : 'Du er blevet inviteret til AKITA. For at komme i gang skal du først bekræfte din email.'
           }
         </p>
-        
-        <p style="margin-bottom: 20px;">
-          Klik på knappen nedenfor for at bekræfte din konto og komme i gang:
+        ${companyName ? `
+        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+          <strong>Firma:</strong> ${companyName}
         </p>
-        
+        ` : ''}
         <div style="text-align: center; margin: 30px 0;">
           <a href="${verifyLink}" 
-             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                    color: white; 
-                    padding: 15px 30px; 
-                    text-decoration: none; 
-                    border-radius: 5px; 
-                    font-weight: bold; 
-                    display: inline-block;
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-            ${isCEO ? '👑 Bekræft CEO Konto' : '🚀 Bekræft Min Konto'}
+             style="background: linear-gradient(135deg, #ff0000, #cc0000); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            ${isCEO ? 'Bekræft CEO konto' : 'Bekræft din konto'}
           </a>
         </div>
-        
-        <p style="margin-bottom: 20px; color: #666; font-size: 14px;">
-          Eller kopier og indsæt dette link i din browser:<br>
-          <a href="${verifyLink}" style="color: #667eea; word-break: break-all;">${verifyLink}</a>
+        <p style="color: #666; line-height: 1.6;">
+          Efter bekræftelse bliver du logget ind og ${isCEO ? 'kan oprette din organisation' : 'bliver bedt om at oprette din egen adgangskode'}.
+          Du kan derefter tilgå appen via <a href="${appOrigin}/app">${appOrigin}/app</a>.
         </p>
-        
-        <div style="background: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #333;">📋 Dine oplysninger:</h3>
-          <p style="margin: 5px 0;"><strong>Navn:</strong> ${firstName} ${lastName}</p>
-          <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
-          <p style="margin: 5px 0;"><strong>Rolle:</strong> ${isCEO ? 'CEO' : role === 'admin' ? 'Administrator' : 'Sælger'}</p>
-          ${companyName ? `<p style="margin: 5px 0;"><strong>Firma:</strong> ${companyName}</p>` : ''}
-        </div>
-        
-        <p style="color: #888; font-size: 12px; margin-top: 30px;">
-          Dette link udløber om 7 dage. Hvis du har spørgsmål, kontakt venligst din administrator.
+        <p style="color: #a00; line-height: 1.6; margin-top: 16px;">
+          Bemærk: Login med engangskode er ikke understøttet. Brug linket ovenfor til at bekræfte din konto.
         </p>
       </div>
-    </body>
-    </html>
+      
+      <div style="text-align: center; color: #999; font-size: 12px;">
+        <p>Denne invitation udløber om 7 dage.</p>
+        <p>Hvis du ikke har anmodet om denne invitation, kan du ignorere denne email.</p>
+      </div>
+    </div>
   `,
 });
 

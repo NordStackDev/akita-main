@@ -146,7 +146,7 @@ export const InviteUserForm = ({
           Inviter ny bruger
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          Send en invitation til en ny medarbejder. De får en engangskode på email.
+          Send en invitation til en ny sælger. De får en engangskode på email.
         </CardDescription>
       </CardHeader>
 
@@ -168,7 +168,7 @@ export const InviteUserForm = ({
                   {allowedRoles.map((r) => (
                     <option key={r} value={r}>
                       {r === "admin" 
-                        ? "Administrator" 
+                        ? "Admin" 
                         : r === "sales" 
                         ? "Sælger"
                         : r.charAt(0).toUpperCase() + r.slice(1)}
