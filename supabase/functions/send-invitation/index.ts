@@ -307,9 +307,9 @@ const { data: inviteData, error: inviteError } = await supabase
   .insert({
     email: email.toLowerCase(),
     code: invitationCode,
-    created_by_user_id: currentUser.id,
+    created_by_user_id: user.id,
     invited_role: role,
-    invited_org_id: role === 'ceo' ? null : organizationId,
+    invited_org_id: role === 'ceo' ? null : targetOrganizationId,
     first_name: firstName,
     last_name: lastName,
     phone: phone || null,
