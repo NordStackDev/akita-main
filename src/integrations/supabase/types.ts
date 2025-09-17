@@ -484,29 +484,47 @@ export type Database = {
       invitation_codes: {
         Row: {
           code: string
+          company_name: string | null
           created_at: string
           created_by_user_id: string | null
           email: string
           expires_at: string
+          first_name: string | null
           id: string
+          invited_org_id: string | null
+          invited_role: string | null
+          last_name: string | null
+          phone: string | null
           used_at: string | null
         }
         Insert: {
           code: string
+          company_name?: string | null
           created_at?: string
           created_by_user_id?: string | null
           email: string
           expires_at?: string
+          first_name?: string | null
           id?: string
+          invited_org_id?: string | null
+          invited_role?: string | null
+          last_name?: string | null
+          phone?: string | null
           used_at?: string | null
         }
         Update: {
           code?: string
+          company_name?: string | null
           created_at?: string
           created_by_user_id?: string | null
           email?: string
           expires_at?: string
+          first_name?: string | null
           id?: string
+          invited_org_id?: string | null
+          invited_role?: string | null
+          last_name?: string | null
+          phone?: string | null
           used_at?: string | null
         }
         Relationships: [
@@ -515,6 +533,13 @@ export type Database = {
             columns: ["created_by_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_codes_invited_org_id_fkey"
+            columns: ["invited_org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -695,6 +720,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      onboarding_progress: {
+        Row: {
+          completed_steps: Json | null
+          created_at: string | null
+          current_step: string
+          id: string
+          onboarding_data: Json | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_steps?: Json | null
+          created_at?: string | null
+          current_step?: string
+          id?: string
+          onboarding_data?: Json | null
+          role: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_steps?: Json | null
+          created_at?: string | null
+          current_step?: string
+          id?: string
+          onboarding_data?: Json | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       organizations: {
         Row: {
@@ -1785,6 +1843,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_role: {
+        Args: { org_id?: string; role_name: string; user_uuid: string }
+        Returns: boolean
+      }
       attach_auth_user_to_invited_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -1830,6 +1892,10 @@ export type Database = {
       is_admin_or_developer: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      start_user_onboarding: {
+        Args: { initial_data?: Json; role_name: string; user_uuid: string }
+        Returns: string
       }
     }
     Enums: {

@@ -11,6 +11,7 @@ import { TrackingPage } from "@/components/tracking/TrackingPage";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { OnboardingPage } from "@/components/auth/OnboardingPage";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { StatsPage } from "@/components/stats/StatsPage";
 import { TeamPage } from "@/components/team/TeamPage";
 import { AppLayout } from "@/components/AppLayout";
@@ -36,6 +37,7 @@ export const AkitaApp = () => {
   const [roleLoading, setRoleLoading] = useState(true);
   const [onboardingRequired, setOnboardingRequired] = useState(false);
   const [ceoOnboardingRequired, setCeoOnboardingRequired] = useState(false);
+  const [showOnboardingFlow, setShowOnboardingFlow] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -77,7 +79,16 @@ export const AkitaApp = () => {
           name: data.user_roles.name,
         });
 
-        if (
+        // Check if user has onboarding progress
+        const { data: onboardingData } = await supabase
+          .from('onboarding_progress')
+          .select('*')
+          .eq('user_id', user!.id)
+          .maybeSingle();
+
+        if (onboardingData && onboardingData.current_step !== 'completed') {
+          setShowOnboardingFlow(true);
+        } else if (
           data.user_roles.name === "ceo" &&
           (!data.organization_id || !data.first_login_completed)
         ) {
@@ -118,6 +129,14 @@ export const AkitaApp = () => {
         <Route path="*" element={<LoginPage onLogin={() => {}} />} />
       </Routes>
     );
+  }
+
+  if (showOnboardingFlow) {
+    const handleOnboardingFlowComplete = () => {
+      setShowOnboardingFlow(false);
+      loadUserRole();
+    };
+    return <OnboardingFlow onComplete={handleOnboardingFlowComplete} />;
   }
 
   if (ceoOnboardingRequired) {
