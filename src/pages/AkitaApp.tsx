@@ -8,7 +8,7 @@ import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackingPage } from "@/components/tracking/TrackingPage";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { RoleBasedOnboarding } from "@/components/auth/RoleBasedOnboarding";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { StatsPage } from "@/components/stats/StatsPage";
 import { TeamPage } from "@/components/team/TeamPage";
 import { AppLayout } from "@/components/AppLayout";
@@ -98,13 +98,11 @@ export const AkitaApp = () => {
     const handleOnboardingComplete = () => {
       setCeoOnboardingRequired(false);
       setOnboardingRequired(false);
-      // Reload userRole kun hvis det ikke er CEO (ellers reloades først efter CEO-stepperen er færdig)
-      if (role !== "ceo") {
-        loadUserRole();
-      }
+      // Reload userRole after onboarding completion
+      loadUserRole();
     };
 
-    return <RoleBasedOnboarding role={role} onComplete={handleOnboardingComplete} />;
+    return <OnboardingFlow role={role} onComplete={handleOnboardingComplete} />;
   }
 
 

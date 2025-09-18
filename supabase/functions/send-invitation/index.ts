@@ -97,6 +97,12 @@ const handler = async (req: Request): Promise<Response> => {
         code: invitationCode,
         email: email.toLowerCase(),
         created_by_user_id: user.id,
+        invited_role: role,
+        invited_org_id: role === 'ceo' ? null : targetOrganizationId,
+        first_name: firstName,
+        last_name: lastName,
+        phone: phone || '',
+        company_name: companyName || '',
       });
 
     if (insertError) {

@@ -4,38 +4,31 @@ import { CEOOnboardingForm } from "@/components/ceo/CEOOnboardingForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-interface RoleBasedOnboardingProps {
+interface OnboardingFlowProps {
   role: "ceo" | "admin" | "sales";
   onComplete: () => void;
 }
 
-export const RoleBasedOnboarding: React.FC<RoleBasedOnboardingProps> = ({ role, onComplete }) => {
+export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ role, onComplete }) => {
   const [step, setStep] = useState(0);
-  console.log('[RoleBasedOnboarding] role:', role, 'step:', step);
 
-  // CEO steps: Kun personlig info og firmaoprettelse
+  // CEO flow: Personal info → Company creation
   if (role === "ceo") {
     switch (step) {
       case 0:
         return (
-          <OnboardingPage onComplete={(user) => {
-            console.log('[RoleBasedOnboarding] CEO onboarding: completed personal info, going to step 1', user);
-            setStep(1);
-          }} />
+          <OnboardingPage onComplete={() => setStep(1)} />
         );
       case 1:
         return (
-          <CEOOnboardingForm onComplete={() => {
-            console.log('[RoleBasedOnboarding] CEO onboarding: completed company/org creation, calling onComplete');
-            onComplete();
-          }} />
+          <CEOOnboardingForm onComplete={onComplete} />
         );
       default:
         return null;
     }
   }
 
-  // Admin steps
+  // Admin flow: Personal info → Admin intro
   if (role === "admin") {
     switch (step) {
       case 0:
@@ -44,13 +37,17 @@ export const RoleBasedOnboarding: React.FC<RoleBasedOnboardingProps> = ({ role, 
         );
       case 1:
         return (
-          <Card className="max-w-md mx-auto mt-8">
+          <Card className="max-w-md mx-auto mt-8 akita-card border-border">
             <CardHeader>
-              <CardTitle>Intro til admin-funktioner</CardTitle>
+              <CardTitle className="text-foreground">Intro til admin-funktioner</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* TODO: Admin intro content */}
-              <Button onClick={onComplete}>Afslut onboarding</Button>
+              <p className="text-muted-foreground mb-4">
+                Som administrator har du adgang til at administrere organisationen, invitere brugere og overvåge aktivitet.
+              </p>
+              <Button onClick={onComplete} className="w-full akita-gradient hover:akita-glow akita-transition">
+                Afslut onboarding
+              </Button>
             </CardContent>
           </Card>
         );
@@ -59,7 +56,7 @@ export const RoleBasedOnboarding: React.FC<RoleBasedOnboardingProps> = ({ role, 
     }
   }
 
-  // Sælger steps: kun personlig info, derefter afslut
+  // Sales flow: Just personal info
   if (role === "sales") {
     return <OnboardingPage onComplete={onComplete} />;
   }
