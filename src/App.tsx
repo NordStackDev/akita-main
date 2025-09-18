@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AkitaApp } from "./pages/AkitaApp";
 import { LoginPage } from "@/components/auth/LoginPage";
+import { InvitationHandler } from "@/components/auth/InvitationHandler";
 import { DevSetup } from "./pages/DevSetup";
 import NotFound from "./pages/NotFound";
 
@@ -18,6 +19,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <InvitationHandler />
           <Routes>
             <Route path="/" element={<Navigate to="/app" replace />} />
             <Route path="/dev" element={<DevSetup />} />
