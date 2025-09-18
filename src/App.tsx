@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AkitaApp } from "./pages/AkitaApp";
+import { LoginPage } from "@/components/auth/LoginPage";
 import { DevSetup } from "./pages/DevSetup";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/stats" element={<Navigate to="/app/stats" replace />} />
             <Route path="/team" element={<Navigate to="/app/team" replace />} />
 
+            <Route path="/app/auth" element={<LoginPage onLogin={() => {}} />} />
             <Route path="/app/*" element={<AkitaApp />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -44,6 +44,7 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('[OnboardingPage] handleSubmit called');
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
@@ -117,18 +118,43 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
         }
       }
 
-      // Update user information
+      // Always enforce CEO role if user was invited as CEO
+      // Fetch user role from users table to check if CEO
+      const { data: userRow } = await supabase
+        .from('users')
+        .select('role_id, user_roles(name)')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      let updateFields: any = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        name: `${formData.firstName} ${formData.lastName}`,
+        phone: formData.phone,
+        birth_date: formData.birthDate || null,
+        force_password_reset: false
+      };
+
+      // CEO må IKKE få first_login_completed: true endnu
+      if (userRow?.user_roles?.name !== 'ceo') {
+        updateFields.first_login_completed = true;
+      }
+
+      if (userRow?.user_roles?.name === 'ceo') {
+        // Get CEO role id
+        const { data: ceoRole } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('name', 'ceo')
+          .maybeSingle();
+        if (ceoRole?.id) {
+          updateFields.role_id = ceoRole.id;
+        }
+      }
+
       const { error: userError } = await supabase
         .from('users')
-        .update({
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          name: `${formData.firstName} ${formData.lastName}`,
-          phone: formData.phone,
-          birth_date: formData.birthDate || null,
-          first_login_completed: true,
-          force_password_reset: false
-        })
+        .update(updateFields)
         .eq('id', user.id);
 
       // Update customer record if exists (for address info)
@@ -166,7 +192,8 @@ export const OnboardingPage = ({ onComplete }: OnboardingPageProps) => {
         description: "Din profil er oprettet og du er nu klar til at komme i gang",
       });
 
-      onComplete(user);
+  console.log('[OnboardingPage] onComplete called, user:', user);
+  onComplete(user);
 
     } catch (error: any) {
       toast({

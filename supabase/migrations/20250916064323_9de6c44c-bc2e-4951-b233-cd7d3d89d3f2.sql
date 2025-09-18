@@ -86,7 +86,7 @@ BEGIN
     RAISE EXCEPTION 'User role not found';
   END IF;
 
-  IF v_role_name NOT IN ('ceo', 'admin', 'developer') THEN
+  IF lower(v_role_name) NOT IN ('ceo', 'admin', 'developer') THEN
     RAISE EXCEPTION 'Not allowed to create company';
   END IF;
 

@@ -44,11 +44,11 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         return;
       }
 
-      // Get CEO role first so RLS allows company creation
+      // Get CEO role first so RLS allows company creation (case-insensitive)
       const { data: ceoRole } = await supabase
         .from("user_roles")
         .select("id")
-        .eq("name", "ceo")
+        .ilike("name", "ceo")
         .single();
 
       if (!ceoRole) {

@@ -12,6 +12,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, UserPlus, Mail, User, Phone } from "lucide-react";
+import { useInviteForm } from "./useInviteForm";
+import { InviteFormFields } from "./InviteFormFields";
 
 interface InviteUserFormProps {
   organizationId: string;
