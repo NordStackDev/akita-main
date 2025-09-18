@@ -55,6 +55,54 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const [userRole, setUserRole] = useState<{ level: number; name?: string } | null>(null);
   const [profileData, setProfileData] = useState<any>(null);
 
+  // Fetch user role and profile data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+
+      try {
+        // Fetch user role
+        const { data: userData, error: userError } = await supabase
+          .from("users")
+          .select(`
+            role_id,
+            user_roles!inner(name, level)
+          `)
+          .eq("id", user.id)
+          .single();
+
+        if (userError) {
+          console.error("Error fetching user role:", userError);
+          return;
+        }
+
+        if (userData?.user_roles) {
+          setUserRole({
+            level: userData.user_roles.level,
+            name: userData.user_roles.name
+          });
+        }
+
+        // Fetch profile data
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (profileError) {
+          console.warn("Error fetching profile:", profileError);
+        } else {
+          setProfileData(profile);
+        }
+      } catch (error) {
+        console.error("Error in fetchUserData:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [user?.id]);
+
   // Standard navigation items
   const navigationItems =
     userRole && userRole.level >= 6 && userRole.name !== "developer"
@@ -136,6 +184,27 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
         </div>
       </SidebarHeader>
       <SidebarContent>
+        {/* Main Navigation */}
+        {navigationItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navigationItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} end className={({ isActive }) => getNavClassName({ isActive })}>
+                        <item.icon className="w-4 h-4" />
+                        {state !== "collapsed" && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         {/* CEO Section */}
         {ceoItems.length > 0 && (
           <SidebarGroup>
