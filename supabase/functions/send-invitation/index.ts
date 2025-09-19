@@ -129,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
       targetRoleId = ceoRole.id;
     } else {
-      // Standard mapping for andre roller
+      // Strict role mapping: match preferred aliases in order, no level-based fallback
       const normalizedRole = (role || '').toLowerCase().trim();
       const roleAliases: Record<string, string[]> = {
         sales: ['seller', 'sales'],
@@ -139,11 +139,8 @@ const handler = async (req: Request): Promise<Response> => {
         admin: ['admin'],
         developer: ['developer'],
       };
-      const preferredNames = [
-        ...(roleAliases[normalizedRole] ?? [normalizedRole]),
-        'seller', 'sales', 'admin', 'developer', 'ceo',
-      ];
-      const { data: allRoles, error: rolesFetchError } = await supabase.from('user_roles').select('id, name, level');
+      const preferredNames = roleAliases[normalizedRole] ?? [normalizedRole];
+      const { data: allRoles, error: rolesFetchError } = await supabase.from('user_roles').select('id, name');
       if (rolesFetchError || !allRoles || allRoles.length === 0) {
         console.error('Error fetching roles:', rolesFetchError);
         return new Response(JSON.stringify({ error: 'Failed to load roles' }), {
@@ -151,18 +148,12 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      const map = new Map<string, { id: string; level: number }>();
-      for (const r of allRoles) {
-        map.set(String(r.name).toLowerCase(), { id: r.id, level: r.level });
-      }
-      let bestLevel = Number.MAX_SAFE_INTEGER;
+      const byName = new Map(allRoles.map((r: any) => [String(r.name).toLowerCase(), r]));
       for (const name of preferredNames) {
-        const found = map.get(name);
-        if (found) {
-          if (found.level < bestLevel) {
-            bestLevel = found.level;
-            targetRoleId = found.id;
-          }
+        const match = byName.get(name);
+        if (match) {
+          targetRoleId = match.id;
+          break;
         }
       }
       if (!targetRoleId) {

@@ -158,5 +158,40 @@ export const AkitaApp = () => {
     );
   }
 
-  return <Navigate to="/app/dashboard" replace />;
+  // Admin: navigation + admin access
+  if (userRole?.name?.toLowerCase() === "admin") {
+    return (
+      <AppLayout user={user} onLogout={signOut}>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/sales" element={<SalesPage />} />
+          <Route path="/locations" element={<LocationsPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/team" element={<TeamPage />} />
+          <Route path="/tracking" element={<TrackingPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/admin/organizations" element={<OrganizationManagementPage />} />
+          <Route path="/admin/invite" element={<InvitePage />} />
+          <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+        </Routes>
+      </AppLayout>
+    );
+  }
+
+  // Default (sælger): navigation only
+  return (
+    <AppLayout user={user} onLogout={signOut}>
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/sales" element={<SalesPage />} />
+        <Route path="/locations" element={<LocationsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+      </Routes>
+    </AppLayout>
+  );
 };
