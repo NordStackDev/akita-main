@@ -103,24 +103,20 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
     fetchUserData();
   }, [user?.id]);
 
-  // Standard navigation items
-  const navigationItems =
-    userRole && userRole.level >= 6 && userRole.name !== "developer"
-      ? [{ title: "Forside", url: "/app/dashboard", icon: Home }]
-      : [
-          { title: "Dashboard", url: "/app/dashboard", icon: Home },
-          ...(userRole && userRole.name === "developer"
-            ? [
-                { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
-                { title: "Lokationer", url: "/app/locations", icon: MapPin },
-                { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
-                { title: "Team", url: "/app/team", icon: Users },
-                { title: "Sælger Tracking", url: "/app/tracking", icon: Target },
-              ]
-            : [
-                { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
-              ]),
-        ];
+  // Standard navigation items - alle roller får basale navigation
+  const navigationItems = [
+    { title: "Dashboard", url: "/app/dashboard", icon: Home },
+    { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
+    ...(userRole && (userRole.level <= 5 || userRole.name === "developer") 
+      ? [
+          { title: "Lokationer", url: "/app/locations", icon: MapPin },
+          { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
+          { title: "Team", url: "/app/team", icon: Users },
+          { title: "Tracking", url: "/app/tracking", icon: Target },
+        ]
+      : []
+    ),
+  ];
 
   // CEO navigation
   const ceoItems =
@@ -185,8 +181,8 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
       <SidebarContent>
 
 
-        {/* Main Navigation for ikke-CEO eller developer */}
-        {(userRole?.name?.toLowerCase() !== "ceo" || userRole?.name === "developer") && navigationItems.length > 0 && (
+        {/* Main Navigation */}
+        {navigationItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>Navigation</SidebarGroupLabel>
             <SidebarGroupContent>

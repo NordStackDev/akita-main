@@ -110,18 +110,17 @@ export const AkitaApp = () => {
     return (
       <AppLayout user={user} onLogout={signOut}>
         <Routes>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="sales" element={<SalesPage />} />
           <Route path="ceo" element={<CEODashboard />} />
           <Route path="ceo/team" element={<CEOTeamManagement />} />
           <Route path="ceo/organizations" element={<CEOOrganizations />} />
           <Route path="ceo/invite" element={<CEOInviteSalesperson />} />
           <Route path="ceo/company" element={<CEOCompany />} />
-          <Route path="ceo/settings" element={<SettingsPage />} />
-          {/* Tilføj navigation-sider til CEO */}
           <Route path="ceo/tracking" element={<TrackingPage />} />
           <Route path="ceo/stats" element={<StatsPage />} />
           <Route path="ceo/locations" element={<LocationsPage />} />
-          {/* Fallbacks for CEO */}
-          <Route path="dashboard" element={<Navigate to="/app/ceo" replace />} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="auth" element={<Navigate to="/app/ceo" replace />} />
           <Route path="/" element={<Navigate to="/app/ceo" replace />} />
           <Route path="*" element={<Navigate to="/app/ceo" replace />} />
@@ -134,23 +133,22 @@ export const AkitaApp = () => {
     return (
       <AppLayout user={user} onLogout={signOut}>
         <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/sales" element={<SalesPage />} />
-          <Route path="/sales/new" element={<SalesPage />} />
-          <Route path="/locations" element={<LocationsPage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/team" element={<TeamPage />} />
-          <Route path="/tracking" element={<TrackingPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/developer/monitoring" element={<SystemMonitoringPage />} />
-          <Route path="/developer/changelog" element={<ChangelogAdminPage />} />
-          <Route path="/ceo/team" element={<CEOTeamManagement />} />
-          <Route path="/ceo/organizations" element={<CEOOrganizations />} />
-          <Route path="/ceo/invite" element={<CEOInviteSalesperson />} />
-          <Route path="/ceo/company" element={<CEOCompany />} />
-          <Route path="/admin/organizations" element={<OrganizationManagementPage />} />
-          <Route path="/admin/invite" element={<InvitePage />} />
-          <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="sales" element={<SalesPage />} />
+          <Route path="locations" element={<LocationsPage />} />
+          <Route path="stats" element={<StatsPage />} />
+          <Route path="team" element={<TeamPage />} />
+          <Route path="tracking" element={<TrackingPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="developer/monitoring" element={<SystemMonitoringPage />} />
+          <Route path="developer/changelog" element={<ChangelogAdminPage />} />
+          <Route path="ceo/team" element={<CEOTeamManagement />} />
+          <Route path="ceo/organizations" element={<CEOOrganizations />} />
+          <Route path="ceo/invite" element={<CEOInviteSalesperson />} />
+          <Route path="ceo/company" element={<CEOCompany />} />
+          <Route path="admin/organizations" element={<OrganizationManagementPage />} />
+          <Route path="admin/invite" element={<InvitePage />} />
+          <Route path="auth" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
         </Routes>
@@ -158,21 +156,20 @@ export const AkitaApp = () => {
     );
   }
 
-  // Admin: navigation + admin access
   if (userRole?.name?.toLowerCase() === "admin") {
     return (
       <AppLayout user={user} onLogout={signOut}>
         <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/sales" element={<SalesPage />} />
-          <Route path="/locations" element={<LocationsPage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/team" element={<TeamPage />} />
-          <Route path="/tracking" element={<TrackingPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/admin/organizations" element={<OrganizationManagementPage />} />
-          <Route path="/admin/invite" element={<InvitePage />} />
-          <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="sales" element={<SalesPage />} />
+          <Route path="locations" element={<LocationsPage />} />
+          <Route path="stats" element={<StatsPage />} />
+          <Route path="team" element={<TeamPage />} />
+          <Route path="tracking" element={<TrackingPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="admin/organizations" element={<OrganizationManagementPage />} />
+          <Route path="admin/invite" element={<InvitePage />} />
+          <Route path="auth" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
         </Routes>
@@ -180,15 +177,14 @@ export const AkitaApp = () => {
     );
   }
 
-  // Default (sælger): navigation only
+  // Sælger: kun navigation
   return (
     <AppLayout user={user} onLogout={signOut}>
       <Routes>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/sales" element={<SalesPage />} />
-        <Route path="/locations" element={<LocationsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/auth" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="sales" element={<SalesPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="auth" element={<Navigate to="/app/dashboard" replace />} />
         <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
       </Routes>
