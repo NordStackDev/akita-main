@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -7,6 +7,7 @@ export const useInvitationAcceptance = () => {
   const [searchParams] = useSearchParams();
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const navigate = window.location ? (path: string) => (window.location.href = path) : () => {};
   useEffect(() => {
@@ -90,6 +91,9 @@ export const useInvitationAcceptance = () => {
         });
         // Redirect til app (onboarding)
         setTimeout(() => navigate("/app"), 1200);
+
+        // Redirect til AkitaApp så onboarding kan begynde
+        navigate("/app/dashboard");
 
       } catch (error: any) {
         console.error("Error processing invitation:", error);
