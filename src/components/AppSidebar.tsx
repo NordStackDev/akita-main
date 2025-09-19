@@ -56,51 +56,39 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const [profileData, setProfileData] = useState<any>(null);
 
   // Fetch user role and profile data
+  // Fetch user data as soon as user is available, and allow editing in dropdown if needed
   useEffect(() => {
+    let ignore = false;
     const fetchUserData = async () => {
       if (!user?.id) return;
-
       try {
         // Fetch user role
         const { data: userData, error: userError } = await supabase
           .from("users")
-          .select(`
-            role_id,
-            user_roles!inner(name, level)
-          `)
+          .select(`role_id, user_roles!inner(name, level)`)
           .eq("id", user.id)
           .single();
-
-        if (userError) {
-          console.error("Error fetching user role:", userError);
-          return;
-        }
-
-        if (userData?.user_roles) {
+        if (!ignore && userData?.user_roles) {
           setUserRole({
             level: userData.user_roles.level,
             name: userData.user_roles.name
           });
         }
-
         // Fetch profile data
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("user_id", user.id)
           .single();
-
-        if (profileError) {
-          console.warn("Error fetching profile:", profileError);
-        } else {
+        if (!ignore && profile) {
           setProfileData(profile);
         }
       } catch (error) {
-        console.error("Error in fetchUserData:", error);
+        if (!ignore) console.error("Error in fetchUserData:", error);
       }
     };
-
     fetchUserData();
+    return () => { ignore = true; };
   }, [user?.id]);
 
   // Standard navigation items - alle roller får basale navigation
@@ -141,7 +129,6 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
       ? [
           { title: "Organisation Administration", url: "/app/admin/organizations", icon: Building },
           { title: "Inviter bruger/CEO", url: "/app/admin/invite", icon: UserPlus },
-          { title: "Indstillinger", url: "/app/settings", icon: Settings },
         ]
       : [];
 
@@ -151,6 +138,7 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
       ? [
           { title: "System Overvågning", url: "/app/developer/monitoring", icon: Shield },
           { title: "Changelog Admin", url: "/app/developer/changelog", icon: BarChart3 },
+          { title: "Recover Data", url: "/app/all-users", icon: Users },
           { title: "CEO Team Management", url: "/app/ceo/team", icon: Users },
           { title: "CEO Organisationer", url: "/app/ceo/organizations", icon: Building },
           { title: "CEO Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },

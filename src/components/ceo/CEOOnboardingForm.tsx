@@ -85,12 +85,18 @@ export const CEOOnboardingForm = ({ onComplete }: CEOOnboardingFormProps) => {
         throw companyError;
       }
 
-      toast({
-        title: "Firma oprettet!",
-        description: `${formData.companyName} er nu oprettet som ${formData.companyType} firma. Du kan nu oprette teams og invitere medarbejdere.`,
-      });
+  // Markér onboarding som færdig for CEO
+  await supabase
+    .from("users")
+    .update({ first_login_completed: true })
+    .eq("id", user.id);
 
-      onComplete();
+  toast({
+    title: "Firma oprettet!",
+    description: `${formData.companyName} er nu oprettet som ${formData.companyType} firma. Du kan nu oprette teams og invitere medarbejdere.`,
+  });
+
+  onComplete();
     } catch (error: any) {
       console.error('Error creating company:', error);
       toast({

@@ -1,4 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { UserAdminTab } from "./UserAdminTab";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,6 +61,7 @@ interface Company {
 }
 
 export const OrganizationManagementPage = () => {
+  const { user } = useAuth();
   const [deleteOrganization, setDeleteOrganization] =
     useState<Organization | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -70,9 +74,24 @@ export const OrganizationManagementPage = () => {
   const [deleteCompany, setDeleteCompany] = useState<Company | null>(null);
   const [detailsCompany, setDetailsCompany] = useState<Company | null>(null);
 
+  const [userRole, setUserRole] = useState<string | null>(null);
   useEffect(() => {
-    fetchCompaniesWithOrganizations();
-  }, []);
+    // Hent brugerens rolle fra users-tabellen
+    const fetchRole = async () => {
+      if (!user?.id) return;
+      const { data: userData } = await supabase
+        .from("users")
+        .select("user_roles(name)")
+        .eq("id", user.id)
+        .single();
+      setUserRole(userData?.user_roles?.name || null);
+    };
+    fetchRole();
+  }, [user]);
+
+  useEffect(() => {
+    if (userRole) fetchCompaniesWithOrganizations();
+  }, [userRole]);
 
   const refreshData = () => {
     fetchCompaniesWithOrganizations();
@@ -83,18 +102,38 @@ export const OrganizationManagementPage = () => {
     setError(null);
 
     try {
-      const { data: companiesData, error: companiesError } = await supabase
-        .from("companies")
-        .select(
-          `
-          id, name, logo_url, cvr, address, city, postal_code, phone, company_type, created_at, deleted_at,
-          organizations!inner (id, name, created_at, company_id, deleted_at,
-            users!inner (id, first_name, last_name, name, email, deleted_at, user_roles(name, level))
-          )
-        `
-        )
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+      let companiesData = null;
+      let companiesError = null;
+      if (["admin", "developer"].includes(userRole || "")) {
+        // Hent alle virksomheder for admin/developer
+        const { data, error } = await supabase
+          .from("companies")
+          .select(`
+            id, name, logo_url, cvr, address, city, postal_code, phone, company_type, created_at, deleted_at,
+            organizations!inner (id, name, created_at, company_id, deleted_at,
+              users!inner (id, first_name, last_name, name, email, deleted_at, user_roles(name, level))
+            )
+          `)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false });
+        companiesData = data;
+        companiesError = error;
+      } else {
+        // Hent kun virksomheder for brugerens egen organisation (kræver tilpasning hvis nødvendigt)
+        // Her hentes stadig alle, men kan filtreres hvis nødvendigt
+        const { data, error } = await supabase
+          .from("companies")
+          .select(`
+            id, name, logo_url, cvr, address, city, postal_code, phone, company_type, created_at, deleted_at,
+            organizations!inner (id, name, created_at, company_id, deleted_at,
+              users!inner (id, first_name, last_name, name, email, deleted_at, user_roles(name, level))
+            )
+          `)
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false });
+        companiesData = data;
+        companiesError = error;
+      }
 
       if (companiesError) {
         setError(`Kunne ikke hente firmaer: ${companiesError.message}`);
@@ -112,7 +151,6 @@ export const OrganizationManagementPage = () => {
             users: (org.users || []).filter(user => !user.deleted_at)
           }))
       }));
-      
       setCompanies(filteredCompanies);
     } catch (err) {
       console.error("Error fetching companies:", err);
@@ -144,8 +182,30 @@ export const OrganizationManagementPage = () => {
     );
   };
 
+  const [tab, setTab] = useState(() => {
+    // Hvis admin, start på brugere-tab
+    if (userRole === "admin") return "users";
+    return "orgs";
+  });
   return (
-    <div>
+    <Tabs value={tab} onValueChange={setTab} className="w-full">
+      <TabsList className="mb-8 flex gap-1 bg-background/90 border rounded-lg p-0.5 shadow w-fit mx-auto">
+        <TabsTrigger
+          value="orgs"
+          className="px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-150 data-[state=active]:bg-primary/90 data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-foreground/60"
+        >
+          Firmaer & Organisationer
+        </TabsTrigger>
+        {(["admin", "developer"].includes(userRole || "")) && (
+          <TabsTrigger
+            value="users"
+            className="px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-150 data-[state=active]:bg-primary/90 data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-foreground/60"
+          >
+            Brugere i systemet
+          </TabsTrigger>
+        )}
+      </TabsList>
+      <TabsContent value="orgs">
       <OrganizationDeleteDialog
         organization={deleteOrganization}
         open={!!deleteOrganization}
@@ -335,7 +395,7 @@ export const OrganizationManagementPage = () => {
                               <CardContent className="pt-0">
                                 <div className="text-xs text-muted-foreground mb-4 flex items-center gap-1">
                                   <Calendar className="w-3 h-3" />
-                                  Oprettet:{" "}
+                                  Oprettet: {" "}
                                   {new Date(org.created_at).toLocaleDateString(
                                     "da-DK"
                                   )}
@@ -419,6 +479,10 @@ export const OrganizationManagementPage = () => {
         open={!!detailsCompany}
         onOpenChange={(open) => !open && setDetailsCompany(null)}
       />
-    </div>
+    </TabsContent>
+    <TabsContent value="users">
+      <UserAdminTab />
+    </TabsContent>
+  </Tabs>
   );
 };

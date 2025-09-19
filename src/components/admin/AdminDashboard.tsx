@@ -56,35 +56,86 @@ export const AdminDashboard = () => {
         .eq("user_id", user.id)
         .single();
 
+      const isGlobalAdmin = ["admin", "developer"].includes(profile?.user_roles?.name);
       const organizationId = profile?.organization_id;
 
-      // Get user statistics
-      const { data: users } = await supabase
-        .from("users")
-        .select("id, first_name, last_name, status, created_at")
-        .eq("organization_id", organizationId);
+      // Get users (all if global admin, else only own org)
+      let users = [];
+      if (isGlobalAdmin) {
+        const { data: allUsers } = await supabase
+          .from("users")
+          .select("id, first_name, last_name, status, created_at, organization_id");
+        users = allUsers || [];
+      } else {
+        const { data: orgUsers } = await supabase
+          .from("users")
+          .select("id, first_name, last_name, status, created_at, organization_id")
+          .eq("organization_id", organizationId);
+        users = orgUsers || [];
+      }
 
-      const { data: invitations } = await supabase
-        .from("invitation_codes")
-        .select("*")
-        .is("used_at", null);
+      // Invitations (all if global admin, else only own org)
+      let invitations = [];
+      if (isGlobalAdmin) {
+        const { data: allInvitations } = await supabase
+          .from("invitation_codes")
+          .select("*")
+          .is("used_at", null);
+        invitations = allInvitations || [];
+      } else {
+        const { data: orgInvitations } = await supabase
+          .from("invitation_codes")
+          .select("*")
+          .is("used_at", null)
+          .eq("invited_org_id", organizationId);
+        invitations = orgInvitations || [];
+      }
 
-      const { data: recentUsers } = await supabase
-        .from("users")
-        .select(
+      // Recent users (all if global admin, else only own org)
+      let recentUsers = [];
+      if (isGlobalAdmin) {
+        const { data: allRecent } = await supabase
+          .from("users")
+          .select(
+            `
+            id, first_name, last_name, created_at, status,
+            user_roles (name),
+            profiles(profile_image_url)
           `
-          id, first_name, last_name, created_at, status,
-          user_roles (name)
-        `
-        )
-        .eq("organization_id", organizationId)
-        .order("created_at", { ascending: false })
-        .limit(5);
+          )
+          .order("created_at", { ascending: false })
+          .limit(5);
+        recentUsers = allRecent || [];
+      } else {
+        const { data: orgRecent } = await supabase
+          .from("users")
+          .select(
+            `
+            id, first_name, last_name, created_at, status,
+            user_roles (name),
+            profiles(profile_image_url)
+          `
+          )
+          .eq("organization_id", organizationId)
+          .order("created_at", { ascending: false })
+          .limit(5);
+        recentUsers = orgRecent || [];
+      }
 
-      const totalUsers = users?.length || 0;
-      const activeUsers =
-        users?.filter((u) => u.status === "active").length || 0;
-      const pendingInvitations = invitations?.length || 0;
+      // Organizations (all if global admin, else only own org)
+      let organizations = [];
+      if (isGlobalAdmin) {
+        const { data: allOrgs } = await supabase.from("organizations").select("id, name");
+        organizations = allOrgs || [];
+      } else {
+        organizations = profile?.organizations ? [profile.organizations] : [];
+      }
+
+      const totalUsers = Array.isArray(users) ? users.length : 0;
+      const activeUsers = Array.isArray(users)
+        ? users.filter((u) => typeof u === "object" && u !== null && "status" in u && u.status === "active").length
+        : 0;
+      const pendingInvitations = Array.isArray(invitations) ? invitations.length : 0;
 
       setAdminData({
         profile,
@@ -93,7 +144,7 @@ export const AdminDashboard = () => {
         activeUsers,
         pendingInvitations,
         recentUsers: recentUsers || [],
-        organizations: profile?.organizations ? [profile.organizations] : [],
+        organizations,
       });
     } catch (error) {
       console.error("Error fetching admin data:", error);
@@ -122,6 +173,8 @@ export const AdminDashboard = () => {
 
   const adminName =
     user?.user_metadata?.first_name || user?.email?.split("@")[0] || "Admin";
+
+  const isGlobalAdmin = ["admin", "developer"].includes(adminData.profile?.user_roles?.name);
 
   return (
     <div className="p-6">
@@ -169,7 +222,7 @@ export const AdminDashboard = () => {
             <div className="text-2xl font-bold text-foreground">
               {adminData.totalUsers}
             </div>
-            <p className="text-xs text-muted-foreground">I organisationen</p>
+            <p className="text-xs text-muted-foreground">{isGlobalAdmin ? "I systemet" : "I organisationen"}</p>
           </CardContent>
         </Card>
 
@@ -185,7 +238,7 @@ export const AdminDashboard = () => {
               {adminData.activeUsers}
             </div>
             <p className="text-xs text-muted-foreground">
-              Af {adminData.totalUsers} brugere
+              Af {adminData.totalUsers} brugere {isGlobalAdmin ? "i systemet" : "i organisationen"}
             </p>
           </CardContent>
         </Card>
@@ -244,9 +297,13 @@ export const AdminDashboard = () => {
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-sm">
-                          {user.first_name?.charAt(0) || "U"}
-                        </AvatarFallback>
+                        {user.profiles?.profile_image_url ? (
+                          <AvatarImage src={user.profiles.profile_image_url} />
+                        ) : (
+                          <AvatarFallback className="text-sm">
+                            {user.first_name?.charAt(0) || "U"}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <div>
                         <p className="font-medium text-foreground">

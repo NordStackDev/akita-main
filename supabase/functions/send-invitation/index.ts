@@ -151,13 +151,15 @@ const handler = async (req: Request): Promise<Response> => {
       const byName = new Map(allRoles.map((r: any) => [String(r.name).toLowerCase(), r]));
       for (const name of preferredNames) {
         const match = byName.get(name);
-        if (match) {
-          targetRoleId = match.id;
+        if (match && typeof (match as any).id !== 'undefined') {
+          targetRoleId = (match as any).id;
           break;
         }
       }
       if (!targetRoleId) {
-        return new Response(JSON.stringify({ error: `Role '${role}' not found. Please create it in user_roles.` }), {
+        // Debug info for easier troubleshooting
+        const availableRoles = Array.isArray(allRoles) ? allRoles.map((r: any) => r.name).join(', ') : 'none';
+        return new Response(JSON.stringify({ error: `Role '${role}' not found. Available roles: [${availableRoles}]. Please create it in user_roles.` }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });

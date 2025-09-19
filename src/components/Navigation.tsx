@@ -71,6 +71,15 @@ export const Navigation = ({ user, onLogout }: NavigationProps) => {
     { name: "Team", href: "/team", icon: Users },
     // Show tracking for teamlead and above (level <= 5) or developer
     ...(userRole && (userRole.level <= 5 || userRole.name === 'developer') ? [{ name: "Sælger Tracking", href: "/tracking", icon: Target }] : []),
+    // Admin section
+    ...(userRole && (userRole.name === 'admin' || userRole.name === 'developer') ? [
+      { section: "Admin", items: [
+        { name: "Organisation Administration", href: "/admin/orgs", icon: Home },
+        { name: "Inviter bruger/CEO", href: "/admin/invite", icon: Users },
+        { name: "Indstillinger", href: "/admin/settings", icon: Settings },
+  { name: "Bruger Oversigt", href: "/all-users", icon: Users },
+      ]}
+    ] : []),
   ];
 
   const userName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || 'Bruger';
@@ -98,25 +107,55 @@ export const Navigation = ({ user, onLogout }: NavigationProps) => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navigationItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Button
-                  key={item.name}
-                  variant={isActive ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => handleNavigation(item.href)}
-                  className={`${
-                    isActive 
-                      ? "akita-gradient text-white" 
-                      : "text-muted-foreground hover:text-foreground"
-                  } akita-transition`}
-                >
-                  <item.icon className="w-4 h-4 mr-2" />
-                  {item.name}
-                </Button>
-              );
+          <div className="hidden md:flex flex-col space-y-2">
+            {navigationItems.map((item, idx) => {
+              if (item.section) {
+                // Render section header and items
+                return (
+                  <div key={item.section + idx} className="mb-2">
+                    <div className="text-xs font-semibold text-muted-foreground px-2 mb-1">{item.section}</div>
+                    {item.items.map((subItem) => {
+                      const isActive = location.pathname === subItem.href;
+                      return (
+                        <Button
+                          key={subItem.name}
+                          variant={isActive ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => handleNavigation(subItem.href)}
+                          className={`$
+                            {isActive 
+                              ? "akita-gradient text-white" 
+                              : "text-muted-foreground hover:text-foreground"}
+                            akita-transition w-full text-left justify-start"
+                          `}
+                        >
+                          <subItem.icon className="w-4 h-4 mr-2" />
+                          {subItem.name}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                );
+              } else {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Button
+                    key={item.name}
+                    variant={isActive ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => handleNavigation(item.href)}
+                    className={`$
+                      {isActive 
+                        ? "akita-gradient text-white" 
+                        : "text-muted-foreground hover:text-foreground"}
+                      akita-transition`
+                    }
+                  >
+                    <item.icon className="w-4 h-4 mr-2" />
+                    {item.name}
+                  </Button>
+                );
+              }
             })}
           </div>
 
@@ -185,23 +224,49 @@ export const Navigation = ({ user, onLogout }: NavigationProps) => {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {navigationItems.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Button
-                    key={item.name}
-                    variant={isActive ? "default" : "ghost"}
-                    className={`w-full justify-start ${
-                      isActive 
-                        ? "akita-gradient text-white" 
-                        : "text-muted-foreground hover:text-foreground"
-                    } akita-transition`}
-                    onClick={() => handleNavigation(item.href)}
-                  >
-                    <item.icon className="w-4 h-4 mr-2" />
-                    {item.name}
-                  </Button>
-                );
+              {navigationItems.map((item, idx) => {
+                if (item.section) {
+                  return (
+                    <div key={item.section + idx} className="mb-2">
+                      <div className="text-xs font-semibold text-muted-foreground px-2 mb-1">{item.section}</div>
+                      {item.items.map((subItem) => {
+                        const isActive = location.pathname === subItem.href;
+                        return (
+                          <Button
+                            key={subItem.name}
+                            variant={isActive ? "default" : "ghost"}
+                            className={`w-full justify-start ${
+                              isActive 
+                                ? "akita-gradient text-white" 
+                                : "text-muted-foreground hover:text-foreground"
+                            } akita-transition`}
+                            onClick={() => handleNavigation(subItem.href)}
+                          >
+                            <subItem.icon className="w-4 h-4 mr-2" />
+                            {subItem.name}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  );
+                } else {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Button
+                      key={item.name}
+                      variant={isActive ? "default" : "ghost"}
+                      className={`w-full justify-start ${
+                        isActive 
+                          ? "akita-gradient text-white" 
+                          : "text-muted-foreground hover:text-foreground"
+                      } akita-transition`}
+                      onClick={() => handleNavigation(item.href)}
+                    >
+                      <item.icon className="w-4 h-4 mr-2" />
+                      {item.name}
+                    </Button>
+                  );
+                }
               })}
             </div>
           </div>

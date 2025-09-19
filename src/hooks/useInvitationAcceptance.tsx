@@ -8,6 +8,7 @@ export const useInvitationAcceptance = () => {
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
 
+  const navigate = window.location ? (path: string) => (window.location.href = path) : () => {};
   useEffect(() => {
     const handleInvitationAcceptance = async () => {
       const accessToken = searchParams.get("access_token");
@@ -87,6 +88,8 @@ export const useInvitationAcceptance = () => {
           title: "Invitation accepteret",
           description: "Din konto er nu aktiv. Du kan oprette din adgangskode.",
         });
+        // Redirect til app (onboarding)
+        setTimeout(() => navigate("/app"), 1200);
 
       } catch (error: any) {
         console.error("Error processing invitation:", error);

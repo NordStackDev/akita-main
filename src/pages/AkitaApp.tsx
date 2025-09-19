@@ -23,6 +23,8 @@ import { ChangelogAdminPage } from "@/components/developer/ChangelogAdminPage";
 import { SystemMonitoringPage } from "@/components/developer/SystemMonitoringPage";
 
 import { OrganizationManagementPage } from "@/components/admin/OrganizationManagementPage";
+import AllUsersPage from "./AllUsersPage";
+import UserAdminPage from "./UserAdminPage";
 import InvitePage from "./InvitePage";
 
 interface UserRole { level: number; name?: string }
@@ -148,6 +150,7 @@ export const AkitaApp = () => {
           <Route path="ceo/company" element={<CEOCompany />} />
           <Route path="admin/organizations" element={<OrganizationManagementPage />} />
           <Route path="admin/invite" element={<InvitePage />} />
+          <Route path="all-users" element={<AllUsersPage />} />
           <Route path="auth" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
@@ -169,6 +172,7 @@ export const AkitaApp = () => {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="admin/organizations" element={<OrganizationManagementPage />} />
           <Route path="admin/invite" element={<InvitePage />} />
+          <Route path="all-users" element={<AllUsersPage />} />
           <Route path="auth" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
