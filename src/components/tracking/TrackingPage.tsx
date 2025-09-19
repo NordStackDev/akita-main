@@ -81,14 +81,15 @@ export const TrackingPage = () => {
           user_roles!inner(name, level)
         `)
         .eq('organization_id', await getUserOrganizationId())
-        .gte('user_roles.level', 6)
         .order('created_at', { ascending: false });
 
       if (peopleError) throw peopleError;
 
+      const filteredPeople = (people || []).filter(p => p.user_roles?.level >= 6);
+
       // Load sales statistics for each person
       const peopleWithStats = await Promise.all(
-        people.map(async (person) => {
+        filteredPeople.map(async (person) => {
           const { data: salesStats } = await supabase
             .from('sales')
             .select('points, date')

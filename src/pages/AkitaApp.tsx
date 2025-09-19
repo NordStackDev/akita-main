@@ -115,6 +115,11 @@ export const AkitaApp = () => {
           <Route path="ceo/organizations" element={<CEOOrganizations />} />
           <Route path="ceo/invite" element={<CEOInviteSalesperson />} />
           <Route path="ceo/company" element={<CEOCompany />} />
+          <Route path="ceo/settings" element={<SettingsPage />} />
+          {/* Tilføj navigation-sider til CEO */}
+          <Route path="ceo/tracking" element={<TrackingPage />} />
+          <Route path="ceo/stats" element={<StatsPage />} />
+          <Route path="ceo/locations" element={<LocationsPage />} />
           {/* Fallbacks for CEO */}
           <Route path="dashboard" element={<Navigate to="/app/ceo" replace />} />
           <Route path="auth" element={<Navigate to="/app/ceo" replace />} />

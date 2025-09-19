@@ -117,60 +117,60 @@ const handler = async (req: Request): Promise<Response> => {
     const temporaryPassword = `temp_${invitationCode}_${Date.now()}`;
     
     // Resolve role id robustly: fetch all roles and match by preferred names
-    const normalizedRole = (role || '').toLowerCase().trim();
-    const roleAliases: Record<string, string[]> = {
-      sales: ['seller', 'sales'],
-      sælger: ['seller', 'sales'],
-      salesman: ['seller', 'sales'],
-      salesperson: ['seller', 'sales'],
-      admin: ['admin'],
-      ceo: ['ceo'],
-      developer: ['developer'],
-    };
-    const preferredNames = [
-      ...(roleAliases[normalizedRole] ?? [normalizedRole]),
-      // global fallbacks
-      'seller',
-      'sales',
-      'admin',
-      'developer',
-      'ceo',
-    ];
-
-    const { data: allRoles, error: rolesFetchError } = await supabase
-      .from('user_roles')
-      .select('id, name, level');
-
-    if (rolesFetchError || !allRoles || allRoles.length === 0) {
-      console.error('Error fetching roles:', rolesFetchError);
-      return new Response(JSON.stringify({ error: 'Failed to load roles' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const map = new Map<string, { id: string; level: number }>();
-    for (const r of allRoles) {
-      map.set(String(r.name).toLowerCase(), { id: r.id, level: r.level });
-    }
-
-    let targetRoleId: string | undefined;
-    let bestLevel = Number.MAX_SAFE_INTEGER;
-    for (const name of preferredNames) {
-      const found = map.get(name);
-      if (found) {
-        if (found.level < bestLevel) {
-          bestLevel = found.level;
-          targetRoleId = found.id;
+    let targetRoleId;
+    if ((role || '').toLowerCase().trim() === 'ceo') {
+      // Failsafe: find kun CEO-rollen direkte
+      const { data: ceoRole, error: ceoRoleError } = await supabase.from('user_roles').select('id').ilike('name', 'ceo').single();
+      if (ceoRoleError || !ceoRole) {
+        return new Response(JSON.stringify({ error: "CEO role not found in user_roles" }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      targetRoleId = ceoRole.id;
+    } else {
+      // Standard mapping for andre roller
+      const normalizedRole = (role || '').toLowerCase().trim();
+      const roleAliases: Record<string, string[]> = {
+        sales: ['seller', 'sales'],
+        sælger: ['seller', 'sales'],
+        salesman: ['seller', 'sales'],
+        salesperson: ['seller', 'sales'],
+        admin: ['admin'],
+        developer: ['developer'],
+      };
+      const preferredNames = [
+        ...(roleAliases[normalizedRole] ?? [normalizedRole]),
+        'seller', 'sales', 'admin', 'developer', 'ceo',
+      ];
+      const { data: allRoles, error: rolesFetchError } = await supabase.from('user_roles').select('id, name, level');
+      if (rolesFetchError || !allRoles || allRoles.length === 0) {
+        console.error('Error fetching roles:', rolesFetchError);
+        return new Response(JSON.stringify({ error: 'Failed to load roles' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const map = new Map<string, { id: string; level: number }>();
+      for (const r of allRoles) {
+        map.set(String(r.name).toLowerCase(), { id: r.id, level: r.level });
+      }
+      let bestLevel = Number.MAX_SAFE_INTEGER;
+      for (const name of preferredNames) {
+        const found = map.get(name);
+        if (found) {
+          if (found.level < bestLevel) {
+            bestLevel = found.level;
+            targetRoleId = found.id;
+          }
         }
       }
-    }
-
-    if (!targetRoleId) {
-      return new Response(JSON.stringify({ error: `Role '${role}' not found. Please create it in user_roles.` }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      if (!targetRoleId) {
+        return new Response(JSON.stringify({ error: `Role '${role}' not found. Please create it in user_roles.` }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
 // Create or update user account

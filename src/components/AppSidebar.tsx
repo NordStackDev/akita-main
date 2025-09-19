@@ -119,12 +119,6 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
               ]
             : [
                 { title: "Nyt Salg", url: "/app/sales", icon: ShoppingCart },
-                { title: "Lokationer", url: "/app/locations", icon: MapPin },
-                { title: "Statistikker", url: "/app/stats", icon: BarChart3 },
-                { title: "Team", url: "/app/team", icon: Users },
-                ...(userRole && userRole.level <= 5
-                  ? [{ title: "Sælger Tracking", url: "/app/tracking", icon: Target }]
-                  : []),
               ]),
         ];
 
@@ -132,10 +126,14 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const ceoItems =
     userRole && userRole.name?.toLowerCase() === "ceo"
       ? [
+          { title: "Overblik", url: "/app/ceo", icon: Home },
           { title: "Organisationer", url: "/app/ceo/organizations", icon: Building },
           { title: "Team", url: "/app/ceo/team", icon: Users },
           { title: "Inviter Sælger", url: "/app/ceo/invite", icon: UserPlus },
           { title: "Virksomhed", url: "/app/ceo/company", icon: Briefcase },
+          { title: "Tracking", url: "/app/ceo/tracking", icon: Target },
+          { title: "Statistikker", url: "/app/ceo/stats", icon: BarChart3 },
+          { title: "Lokationer", url: "/app/ceo/locations", icon: MapPin },
         ]
       : [];
 
@@ -147,6 +145,7 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
       ? [
           { title: "Organisation Administration", url: "/app/admin/organizations", icon: Building },
           { title: "Inviter bruger/CEO", url: "/app/admin/invite", icon: UserPlus },
+          { title: "Indstillinger", url: "/app/settings", icon: Settings },
         ]
       : [];
 
@@ -184,8 +183,10 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {/* Main Navigation */}
-        {navigationItems.length > 0 && (
+
+
+        {/* Main Navigation for ikke-CEO eller developer */}
+        {(userRole?.name?.toLowerCase() !== "ceo" || userRole?.name === "developer") && navigationItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>Navigation</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -205,8 +206,8 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
           </SidebarGroup>
         )}
 
-        {/* CEO Section */}
-        {ceoItems.length > 0 && (
+        {/* CEO Section for CEO eller developer */}
+        {(userRole?.name?.toLowerCase() === "ceo" || userRole?.name === "developer") && ceoItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center gap-2">
               <Crown className="w-4 h-4 text-yellow-500" />
@@ -316,7 +317,10 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem asChild>
-                <NavLink to="/app/settings" className="cursor-pointer">
+                <NavLink
+                  to={userRole?.name?.toLowerCase() === "ceo" ? "/app/ceo/settings" : "/app/settings"}
+                  className="cursor-pointer"
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Indstillinger</span>
                 </NavLink>

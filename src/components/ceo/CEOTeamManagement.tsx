@@ -90,8 +90,8 @@ export const CEOTeamManagement = () => {
           )
         `)
         .eq("organization_id", profile.organization_id)
-        .gte("user_roles.level", 5) // Team lead level and below
         .order("user_roles.level", { ascending: true });
+      const filteredMembers = (members || []).filter(m => m.user_roles?.level >= 5);
 
       if (members) {
         // Get sales data for each member
