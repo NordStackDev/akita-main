@@ -1881,6 +1881,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_table_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          last_autovacuum: string
+          last_vacuum: string
+          n_dead_tup: number
+          n_live_tup: number
+          schemaname: string
+          tablename: string
+        }[]
+      }
       get_user_organization_id: {
         Args: { user_uuid: string }
         Returns: string
