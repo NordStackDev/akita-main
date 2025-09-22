@@ -84,6 +84,47 @@ export const Dashboard = () => {
         profile?.user_roles?.name === "CEO";
       const organizationId = profile?.organization_id;
 
+      // Hent brugerens team_id
+      const { data: userTeamRow } = await supabase
+        .from("user_team")
+        .select("team_id")
+        .eq("user_id", user.id)
+        .single();
+      const userTeamId = userTeamRow?.team_id;
+
+      // Hent alle teams og deres samlede points
+      const { data: allTeams } = await supabase
+        .from("teams")
+        .select("id, name");
+
+      // Hent alle sales for alle teams
+      const { data: allSales } = await supabase
+        .from("sales")
+        .select("team_id, points");
+
+      // Beregn points pr. team
+      const teamPointsMap = {};
+      (allSales || []).forEach((sale) => {
+        if (!sale.team_id) return;
+        if (!teamPointsMap[sale.team_id]) teamPointsMap[sale.team_id] = 0;
+        teamPointsMap[sale.team_id] += sale.points || 0;
+      });
+
+      // Lav en sorteret liste over teams efter points (højeste først)
+      const sortedTeams = (allTeams || [])
+        .map((team) => ({
+          id: team.id,
+          points: teamPointsMap[team.id] || 0,
+        }))
+        .sort((a, b) => b.points - a.points);
+
+      // Find brugerens teams placering (rank)
+      let teamRank = 0;
+      if (userTeamId) {
+        teamRank = sortedTeams.findIndex((team) => team.id === userTeamId) + 1;
+      }
+
+      // Hent brugerens egne sales til KPI
       const { data: sales } = await supabase
         .from("sales")
         .select(
@@ -104,7 +145,7 @@ export const Dashboard = () => {
       setDashboardData({
         salesCount,
         totalPoints,
-        teamRank: Math.floor(Math.random() * 10) + 1,
+        teamRank,
         weeklyTarget: 100,
         recentSales: sales || [],
         userProfile: profile,
