@@ -129,8 +129,13 @@ export const LoginPage = ({ onLogin }: LoginPageProps) => {
       <div className="relative z-20 w-full max-w-md flex flex-col items-center">
         <Card className="w-full akita-card border-border">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 akita-gradient rounded-xl flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">A</span>
+            <div className="w-52 h-52 mx-auto mb-4 mt-8 flex items-center justify-center group">
+              <img 
+                src="/logoLoginPage.png" 
+                alt="Akita logo" 
+                className="w-52 h-52 object-contain transition-transform duration-500 group-hover:-translate-y-3 group-hover:scale-105 group-hover:drop-shadow-lg" 
+                style={{ willChange: 'transform' }}
+              />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">Log ind til AKITA</CardTitle>
             <CardDescription className="text-muted-foreground">
