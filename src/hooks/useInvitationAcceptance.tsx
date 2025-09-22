@@ -8,15 +8,17 @@ export const useInvitationAcceptance = () => {
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  const navigate = window.location ? (path: string) => (window.location.href = path) : () => {};
   useEffect(() => {
     const handleInvitationAcceptance = async () => {
       const accessToken = searchParams.get("access_token");
       const refreshToken = searchParams.get("refresh_token");
       const type = searchParams.get("type");
 
-      if (!accessToken || !refreshToken || (type !== "invite" && type !== "recovery")) {
+      if (
+        !accessToken ||
+        !refreshToken ||
+        (type !== "invite" && type !== "recovery")
+      ) {
         return;
       }
 
@@ -25,10 +27,11 @@ export const useInvitationAcceptance = () => {
 
       try {
         // Set the session with the tokens from the URL
-        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
 
         if (sessionError) {
           throw sessionError;
@@ -76,13 +79,11 @@ export const useInvitationAcceptance = () => {
             .eq("id", user.id);
 
           // Update profile
-          await supabase
-            .from("profiles")
-            .upsert({
-              user_id: user.id,
-              organization_id: invitedOrgId,
-              role_id: roleData.id,
-            });
+          await supabase.from("profiles").upsert({
+            user_id: user.id,
+            organization_id: invitedOrgId,
+            role_id: roleData.id,
+          });
         }
 
         toast({
@@ -94,7 +95,6 @@ export const useInvitationAcceptance = () => {
 
         // Redirect til AkitaApp så onboarding kan begynde
         navigate("/app/dashboard");
-
       } catch (error: any) {
         console.error("Error processing invitation:", error);
         toast({

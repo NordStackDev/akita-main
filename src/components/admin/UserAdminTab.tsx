@@ -16,6 +16,7 @@ interface User {
   user_roles: { name: string; level: number };
   organization_id?: string;
   profiles?: { profile_image_url?: string };
+  deleted_at?: string | null;
 }
 
 export const UserAdminTab: React.FC = () => {
@@ -24,7 +25,9 @@ export const UserAdminTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [roles, setRoles] = useState<{ name: string; level: number }[]>([]);
-  const [organizations, setOrganizations] = useState<{ id: string; name: string }[]>([]);
+  const [organizations, setOrganizations] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
@@ -34,12 +37,16 @@ export const UserAdminTab: React.FC = () => {
   }, []);
 
   const fetchRoles = async () => {
-    const { data, error } = await supabase.from("user_roles").select("name, level");
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("name, level");
     if (!error && data) setRoles(data);
   };
 
   const fetchOrganizations = async () => {
-    const { data, error } = await supabase.from("organizations").select("id, name");
+    const { data, error } = await supabase
+      .from("organizations")
+      .select("id, name");
     if (!error && data) setOrganizations(data);
   };
 
@@ -47,30 +54,44 @@ export const UserAdminTab: React.FC = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("users")
-      .select("id, first_name, last_name, email, organization_id, user_roles(name, level), profiles(profile_image_url)");
+      .select(
+        "id, first_name, last_name, email, organization_id, user_roles(name, level), profiles(profile_image_url), deleted_at"
+      );
     if (!error && data) setUsers(data);
     setLoading(false);
   };
 
   // Statistik
   const totalUsers = users.length;
-  const activeUsers = users.filter((u: any) => u.status === "active").length;
-  const inactiveUsers = users.filter((u: any) => u.status === "inactive").length;
-  const deletedUsers = users.filter((u: any) => u.status === "deleted").length;
+  const deletedUsers = users.filter((u: User) => !!u.deleted_at).length;
+  const activeUsers = users.filter((u: User) => !u.deleted_at).length;
+  // For simplicity, inactiveUsers = 0 unless der er et felt for det
+  const inactiveUsers = 0;
 
   // Filtrering
-  const filteredUsers = users.filter((u: any) => {
+  const filteredUsers = users.filter((u: User) => {
     const matchesSearch =
       u.first_name?.toLowerCase().includes(search.toLowerCase()) ||
       u.last_name?.toLowerCase().includes(search.toLowerCase()) ||
       u.email?.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || (u.status || "active") === statusFilter;
+    let matchesStatus = true;
+    if (statusFilter === "active") matchesStatus = !u.deleted_at;
+    else if (statusFilter === "deleted") matchesStatus = !!u.deleted_at;
+    // "inactive" kan tilføjes hvis felt findes
     return matchesSearch && matchesStatus;
   });
 
+  // Soft delete funktion
+  const handleSoftDelete = async (userId: string) => {
+    await supabase
+      .from("users")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", userId);
+    fetchUsers();
+  };
+
   return (
-  <div className="space-y-8">
+    <div className="space-y-8">
       {/* Statistik/Tracking */}
       <div className="flex flex-wrap items-center justify-between bg-background rounded-lg p-3 border mb-6 gap-3">
         <div className="flex gap-2 items-center flex-wrap">
@@ -92,7 +113,7 @@ export const UserAdminTab: React.FC = () => {
           <select
             className="border rounded px-2 py-1 text-sm bg-background focus:outline-none"
             value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="all">Alle</option>
             <option value="active">Aktiv</option>
@@ -101,7 +122,7 @@ export const UserAdminTab: React.FC = () => {
           </select>
         </div>
       </div>
-  <div className="mb-6 max-w-lg">
+      <div className="mb-6 max-w-lg">
         <Input
           placeholder="Søg efter brugere..."
           value={search}
@@ -109,42 +130,78 @@ export const UserAdminTab: React.FC = () => {
         />
       </div>
       {loading ? (
-        <div className="text-center text-lg py-8 text-muted-foreground">Indlæser brugere...</div>
+        <div className="text-center text-lg py-8 text-muted-foreground">
+          Indlæser brugere...
+        </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="text-center text-muted-foreground py-8">Ingen brugere fundet</div>
+        <div className="text-center text-muted-foreground py-8">
+          Ingen brugere fundet
+        </div>
       ) : (
-        <div className="grid gap-8">
+        <div className="grid gap-4">
           {filteredUsers.map((user) => (
             <Card
               key={user.id}
-              className="transition-shadow hover:shadow-xl border-0 bg-gradient-to-br from-background via-background/80 to-primary/5 rounded-2xl px-2 py-2"
+              className="transition-shadow hover:shadow-lg border bg-card rounded-xl px-2 py-2"
             >
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4">
-                <div className="flex items-center gap-5 w-full">
-                  <Avatar className="h-16 w-16 shadow border-2 border-primary/30">
-                    <AvatarImage src={user.profiles?.profile_image_url || undefined} />
-                    <AvatarFallback className="text-xl font-bold">
-                      {user.first_name?.charAt(0) || user.email?.charAt(0) || "?"}
+                <div className="flex items-center gap-4 w-full min-w-0">
+                  <Avatar className="h-12 w-12 shadow border border-primary/30">
+                    <AvatarImage
+                      src={user.profiles?.profile_image_url || undefined}
+                    />
+                    <AvatarFallback className="text-lg font-bold">
+                      {user.first_name?.charAt(0) ||
+                        user.email?.charAt(0) ||
+                        "?"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <span className="text-lg font-semibold truncate">{user.first_name} {user.last_name}</span>
-                    <span className="text-sm text-muted-foreground truncate">{user.email}</span>
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <span className="text-base font-semibold truncate">
+                      {user.first_name} {user.last_name}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {user.email}
+                    </span>
+                    <div className="flex gap-2 mt-1">
+                      <Badge
+                        variant="secondary"
+                        className="text-xs px-3 py-0.5 capitalize tracking-wide rounded-full bg-primary/10 text-primary border-0"
+                      >
+                        {user.user_roles?.name}
+                      </Badge>
+                      <Badge
+                        className={`text-xs px-3 py-0.5 rounded-full ${
+                          user.deleted_at
+                            ? "bg-destructive/20 text-destructive"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {user.deleted_at ? "Slettet" : "Aktiv"}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2 min-w-[120px]">
-                  <Badge variant="secondary" className="text-xs px-4 py-1 capitalize tracking-wide rounded-full bg-primary/10 text-primary border-0">
-                    {user.user_roles?.name}
-                  </Badge>
+                <div className="flex flex-row gap-2 items-center mt-4 sm:mt-0">
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="gap-2 w-fit rounded-full px-4 py-2 font-medium text-base bg-primary/90 text-white hover:bg-primary focus:ring-2 focus:ring-primary/40 transition-all shadow-sm"
+                    className="gap-2 rounded-full px-4 py-2 font-medium text-sm bg-primary/90 text-white hover:bg-primary focus:ring-2 focus:ring-primary/40 transition-all shadow-sm"
                     onClick={() => setEditUser(user)}
                   >
-                    <Edit className="w-5 h-5 mr-1" />
+                    <Edit className="w-4 h-4 mr-1" />
                     Rediger
                   </Button>
+                  {!user.deleted_at && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="rounded-full px-4 py-2 font-medium text-xs"
+                      onClick={() => handleSoftDelete(user.id)}
+                    >
+                      Slet
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>
