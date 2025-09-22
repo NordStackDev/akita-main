@@ -181,17 +181,13 @@ export const AkitaApp = () => {
     );
   }
 
-  // Sælger: kun navigation
+  // Sælger: forsimpelt view – kun én side, men let at bygge videre på
   return (
     <AppLayout user={user} onLogout={signOut}>
-      <Routes>
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="sales" element={<SalesPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-        <Route path="auth" element={<Navigate to="/app/dashboard" replace />} />
-        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
-      </Routes>
+      <main className="container mx-auto px-4 py-6">
+        {/* Her kan du bygge flere komponenter på sælgersiden */}
+        <SalesPage />
+      </main>
     </AppLayout>
   );
 };
