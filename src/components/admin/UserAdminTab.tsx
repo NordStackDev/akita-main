@@ -101,10 +101,14 @@ export const UserAdminTab = () => {
 
   // Soft delete funktion
   const handleSoftDelete = async (userId: string) => {
-    await supabase
+    const { error } = await supabase
       .from("users")
       .update({ deleted_at: new Date().toISOString() })
       .eq("id", userId);
+    if (error) {
+      alert("Fejl ved soft delete: " + error.message);
+      return;
+    }
     fetchUsers();
   };
 

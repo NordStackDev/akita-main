@@ -1,13 +1,17 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>;
+  signUp: (
+    email: string,
+    password: string,
+    userData?: any
+  ) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -16,7 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -32,13 +36,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -56,17 +60,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) return;
       try {
-        const { data, error } = await supabase.rpc('attach_auth_user_to_invited_user');
+        const { data, error } = await supabase.rpc(
+          "attach_auth_user_to_invited_user"
+        );
         if (error) {
-          console.warn('[Auth] attach_auth_user_to_invited_user error', error);
+          console.warn("[Auth] attach_auth_user_to_invited_user error", error);
         } else {
-          console.log('[Auth] attach_auth_user_to_invited_user result', data);
+          console.log("[Auth] attach_auth_user_to_invited_user result", data);
         }
       } catch (e) {
-        console.warn('[Auth] attach_auth_user_to_invited_user threw', e);
+        console.warn("[Auth] attach_auth_user_to_invited_user threw", e);
       }
     };
     attach();
+  }, [user]);
+
+  // Soft delete: Log out user if deleted_at is set in users table
+  useEffect(() => {
+    if (user?.id) {
+      supabase
+        .from("users")
+        .select("deleted_at")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.deleted_at) {
+            supabase.auth.signOut();
+            alert("Din konto er deaktiveret.");
+          }
+        });
+    }
   }, [user]);
 
   const signIn = async (email: string, password: string) => {
@@ -79,14 +102,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, userData?: any) => {
     const redirectUrl = `${window.location.origin}/app/auth`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: userData
-      }
+        data: userData,
+      },
     });
     return { error };
   };
@@ -104,9 +127,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
