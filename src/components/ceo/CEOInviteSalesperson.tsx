@@ -41,6 +41,16 @@ export const CEOInviteSalesperson = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Donut chart helpers
+  const donutCirc = 2 * Math.PI * 14; // r=14, circ ~88
+  // Returnér hvor meget af cirklen der skal være "tom" (strokeDashoffset)
+  const donutValue = (val: number) => {
+    if (!stats.total || stats.total <= 0) return donutCirc;
+    if (val <= 0) return donutCirc;
+    if (val >= stats.total) return 0;
+    return donutCirc - donutCirc * (val / stats.total);
+  };
+
   useEffect(() => {
     fetchInvitationsData();
   }, []);

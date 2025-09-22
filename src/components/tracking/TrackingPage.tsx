@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 
 // No props needed - user data comes from context
-
 interface SalespersonData {
   id: string;
   first_name: string;
