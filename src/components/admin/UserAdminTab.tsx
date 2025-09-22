@@ -1,4 +1,6 @@
+// Bemærk: Brugere med rollen 'developer' kan ikke slettes via UI, og rollen kan kun gives direkte i databasen af en udvikler.
 import React, { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,7 +21,8 @@ interface User {
   deleted_at?: string | null;
 }
 
-export const UserAdminTab: React.FC = () => {
+export const UserAdminTab = () => {
+  const { user: authUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,6 +32,21 @@ export const UserAdminTab: React.FC = () => {
     { id: string; name: string }[]
   >([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch current user's role from users table
+    const fetchCurrentUserRole = async () => {
+      if (!authUser?.id) return;
+      const { data } = await supabase
+        .from("users")
+        .select("user_roles(name)")
+        .eq("id", authUser.id)
+        .single();
+      setCurrentUserRole(data?.user_roles?.name || null);
+    };
+    fetchCurrentUserRole();
+  }, [authUser]);
 
   useEffect(() => {
     fetchUsers();
@@ -192,16 +210,18 @@ export const UserAdminTab: React.FC = () => {
                     <Edit className="w-4 h-4 mr-1" />
                     Rediger
                   </Button>
-                  {!user.deleted_at && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="rounded-full px-4 py-2 font-medium text-xs"
-                      onClick={() => handleSoftDelete(user.id)}
-                    >
-                      Slet
-                    </Button>
-                  )}
+                  {!user.deleted_at &&
+                    (currentUserRole === "developer" ||
+                      user.user_roles?.name !== "developer") && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="rounded-full px-4 py-2 font-medium text-xs"
+                        onClick={() => handleSoftDelete(user.id)}
+                      >
+                        Slet
+                      </Button>
+                    )}
                 </div>
               </div>
             </Card>

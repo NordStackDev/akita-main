@@ -1,3 +1,4 @@
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { useState, useEffect } from "react";
 import "./dashboard-float.css";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -187,7 +188,10 @@ export const Dashboard = () => {
   }
 
   // Show Admin Dashboard for Admins (but not developers)
-  if (dashboardData.isAdmin && dashboardData.userProfile?.user_roles?.name !== "developer") {
+  if (
+    dashboardData.isAdmin &&
+    dashboardData.userProfile?.user_roles?.name !== "developer"
+  ) {
     return <AdminDashboard />;
   }
 
@@ -241,7 +245,7 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {dashboardData.salesCount}
+              <AnimatedCounter value={dashboardData.salesCount} />
             </div>
             <p className="text-xs text-muted-foreground">
               Mål: {dashboardData.weeklyTarget}
@@ -258,7 +262,7 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {dashboardData.totalPoints}
+              <AnimatedCounter value={dashboardData.totalPoints} />
             </div>
             <p className="text-xs text-muted-foreground">+12% fra sidste uge</p>
           </CardContent>

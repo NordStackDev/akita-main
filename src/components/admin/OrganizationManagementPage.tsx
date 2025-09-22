@@ -22,43 +22,9 @@ import CompanyEditDialog from "./CompanyEditDialog";
 import CompanyDeleteDialog from "./CompanyDeleteDialog";
 import CompanyDetailsDialog from "./CompanyDetailsDialog";
 import OrganizationDeleteDialog from "./OrganizationDeleteDialog";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
-interface Organization {
-  id: string;
-  name: string;
-  created_at: string;
-  company_id: string | null;
-  users?: User[];
-  deleted_at?: string;
-}
-
-interface User {
-  id: string;
-  first_name: string;
-  last_name: string;
-  name: string;
-  email: string;
-  deleted_at?: string;
-  user_roles: {
-    name: string;
-    level: number;
-  };
-}
-
-interface Company {
-  id: string;
-  name: string;
-  logo_url?: string | null;
-  cvr?: string | null;
-  address?: string | null;
-  city?: string | null;
-  postal_code?: string | null;
-  phone?: string | null;
-  company_type?: string | null;
-  created_at?: string;
-  organizations?: Organization[];
-  deleted_at?: string;
-}
+import type { Organization, User, Company } from "./types";
 
 export const OrganizationManagementPage = () => {
   const { user } = useAuth();
@@ -108,12 +74,14 @@ export const OrganizationManagementPage = () => {
         // Hent alle virksomheder for admin/developer
         const { data, error } = await supabase
           .from("companies")
-          .select(`
+          .select(
+            `
             id, name, logo_url, cvr, address, city, postal_code, phone, company_type, created_at, deleted_at,
             organizations!inner (id, name, created_at, company_id, deleted_at,
               users!inner (id, first_name, last_name, name, email, deleted_at, user_roles(name, level))
             )
-          `)
+          `
+          )
           .is("deleted_at", null)
           .order("created_at", { ascending: false });
         companiesData = data;
@@ -123,12 +91,14 @@ export const OrganizationManagementPage = () => {
         // Her hentes stadig alle, men kan filtreres hvis nødvendigt
         const { data, error } = await supabase
           .from("companies")
-          .select(`
+          .select(
+            `
             id, name, logo_url, cvr, address, city, postal_code, phone, company_type, created_at, deleted_at,
             organizations!inner (id, name, created_at, company_id, deleted_at,
               users!inner (id, first_name, last_name, name, email, deleted_at, user_roles(name, level))
             )
-          `)
+          `
+          )
           .is("deleted_at", null)
           .order("created_at", { ascending: false });
         companiesData = data;
@@ -142,14 +112,14 @@ export const OrganizationManagementPage = () => {
       }
 
       // Filter out soft deleted organizations and users from the response
-      const filteredCompanies = (companiesData || []).map(company => ({
+      const filteredCompanies = (companiesData || []).map((company) => ({
         ...company,
         organizations: (company.organizations || [])
-          .filter(org => !org.deleted_at)
-          .map(org => ({
+          .filter((org) => !org.deleted_at)
+          .map((org) => ({
             ...org,
-            users: (org.users || []).filter(user => !user.deleted_at)
-          }))
+            users: (org.users || []).filter((user) => !user.deleted_at),
+          })),
       }));
       setCompanies(filteredCompanies);
     } catch (err) {
@@ -196,7 +166,7 @@ export const OrganizationManagementPage = () => {
         >
           Firmaer & Organisationer
         </TabsTrigger>
-        {(["admin", "developer"].includes(userRole || "")) && (
+        {["admin", "developer"].includes(userRole || "") && (
           <TabsTrigger
             value="users"
             className="px-4 py-1.5 text-sm font-medium rounded-md transition-all duration-150 data-[state=active]:bg-primary/90 data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-foreground/60"
@@ -206,72 +176,73 @@ export const OrganizationManagementPage = () => {
         )}
       </TabsList>
       <TabsContent value="orgs">
-      <OrganizationDeleteDialog
-        organization={deleteOrganization}
-        open={!!deleteOrganization}
-        onOpenChange={(open) => !open && setDeleteOrganization(null)}
-        onOrganizationDeleted={refreshData}
-      />
+        <OrganizationDeleteDialog
+          organization={deleteOrganization}
+          open={!!deleteOrganization}
+          onOpenChange={(open) => !open && setDeleteOrganization(null)}
+          onOrganizationDeleted={refreshData}
+        />
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Admin: Firmaer & Organisationer</h1>
-      </div>
+        <div className="flex justify-between items-center mb-6 px-4 md:px-8 lg:px-16">
+          <h1 className="text-3xl font-bold">
+            Admin: Firmaer & Organisationer
+          </h1>
+        </div>
 
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Søg efter firmaer, CVR, by eller organisationer..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+        {/* Search Bar */}
+        <div className="mb-6 px-4 md:px-8 lg:px-16">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Søg efter firmaer, CVR, by eller organisationer..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Results */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-lg">Indlæser firmaer og organisationer...</div>
-        </div>
-      ) : error ? (
-        <div className="text-red-500 text-center py-8">{error}</div>
-      ) : filteredCompanies.length === 0 ? (
-        <div className="text-center py-12">
-          <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">Ingen firmaer fundet</h3>
-          <p className="text-muted-foreground">
-            {search
-              ? "Prøv at justere din søgning"
-              : "Der er endnu ingen firmaer oprettet"}
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-6">
-          {filteredCompanies.map((company) => {
-            const totalUsers = getTotalUsers(company);
-            const totalOrganizations = company.organizations?.length || 0;
-            return (
-              <Card
-                key={company.id}
-                className="border-2 border-primary/20 hover:border-primary/40 transition-colors"
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
+        {/* Results */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-lg">Indlæser firmaer og organisationer...</div>
+          </div>
+        ) : error ? (
+          <div className="text-red-500 text-center py-8">{error}</div>
+        ) : filteredCompanies.length === 0 ? (
+          <div className="text-center py-12">
+            <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">Ingen firmaer fundet</h3>
+            <p className="text-muted-foreground">
+              {search
+                ? "Prøv at justere din søgning"
+                : "Der er endnu ingen firmaer oprettet"}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filteredCompanies.map((company) => {
+              const totalUsers = getTotalUsers(company);
+              const totalOrganizations = company.organizations?.length || 0;
+              return (
+                <Card
+                  key={company.id}
+                  className="border bg-card rounded-xl shadow-sm hover:shadow-lg transition-all duration-150"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       {company.logo_url && (
                         <img
                           src={company.logo_url}
                           alt="logo"
-                          className="w-12 h-12 rounded object-cover"
+                          className="w-10 h-10 rounded object-cover border border-border"
                         />
                       )}
-                      <div>
-                        <CardTitle className="text-xl">
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg font-semibold truncate">
                           {company.name}
                         </CardTitle>
-                        <div className="flex gap-4 text-sm text-muted-foreground mt-1">
+                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-1">
                           {company.cvr && (
                             <span className="flex items-center gap-1">
                               <Building2 className="w-3 h-3" />
@@ -294,12 +265,12 @@ export const OrganizationManagementPage = () => {
                       </div>
                     </div>
                     {/* Action Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex flex-row gap-1 items-center mt-2">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setDetailsCompany(company)}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 px-3 py-1 text-xs"
                       >
                         <Eye className="w-4 h-4" />
                         Detaljer
@@ -308,7 +279,7 @@ export const OrganizationManagementPage = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => setEditCompany(company)}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 px-3 py-1 text-xs"
                       >
                         <Edit className="w-4 h-4" />
                         Rediger
@@ -317,172 +288,174 @@ export const OrganizationManagementPage = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => setDeleteCompany(company)}
-                        className="flex items-center gap-1 text-destructive hover:text-destructive"
+                        className="flex items-center gap-1 px-3 py-1 text-xs text-destructive border-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
                         Slet
                       </Button>
                     </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex gap-4 mt-4">
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      <Building2 className="w-3 h-3" />
-                      {totalOrganizations} organisationer
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1"
-                    >
-                      <Users className="w-3 h-3" />
-                      {totalUsers} brugere
-                    </Badge>
-                    {company.created_at && (
+                    {/* Stats */}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <Badge
+                        variant="secondary"
+                        className="flex items-center gap-1 text-xs px-2 py-0.5"
+                      >
+                        <Building2 className="w-3 h-3" />
+                        <AnimatedCounter value={totalOrganizations} />{" "}
+                        organisationer
+                      </Badge>
                       <Badge
                         variant="outline"
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 text-xs px-2 py-0.5"
                       >
-                        <Calendar className="w-3 h-3" />
-                        {new Date(company.created_at).toLocaleDateString(
-                          "da-DK"
-                        )}
+                        <Users className="w-3 h-3" />
+                        <AnimatedCounter value={totalUsers} /> brugere
                       </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2">
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Building2 className="w-5 h-5" />
-                        Organisationer ({totalOrganizations})
-                      </h3>
-                      {company.organizations &&
-                      company.organizations.length > 0 ? (
-                        <div className="grid gap-4">
-                          {company.organizations.map((org) => (
-                            <Card
-                              key={org.id}
-                              className="border border-border bg-secondary/20"
-                            >
-                              <CardHeader className="pb-3">
-                                <div className="flex justify-between items-start">
-                                  <CardTitle className="text-base">
-                                    {org.name}
-                                  </CardTitle>
-                                  <div className="flex gap-2 items-center">
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {org.users?.length || 0} brugere
-                                    </Badge>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="text-destructive border-destructive hover:bg-destructive/10"
-                                      onClick={() => setDeleteOrganization(org)}
-                                    >
-                                      <Trash2 className="w-3 h-3" /> Slet
-                                    </Button>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pt-0">
-                                <div className="text-xs text-muted-foreground mb-4 flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  Oprettet: {" "}
-                                  {new Date(org.created_at).toLocaleDateString(
-                                    "da-DK"
-                                  )}
-                                </div>
-                                {/* Users in this organization */}
-                                {org.users && org.users.length > 0 ? (
-                                  <div className="space-y-2">
-                                    <div className="text-sm font-medium">
-                                      Brugere:
-                                    </div>
-                                    <div className="space-y-1 max-h-32 overflow-y-auto">
-                                      {org.users.slice(0, 3).map((user) => (
-                                        <div
-                                          key={user.id}
-                                          className="text-xs p-2 bg-background/50 rounded flex justify-between items-center"
-                                        >
-                                          <div>
-                                            <div className="font-medium">
-                                              {user.name}
-                                            </div>
-                                            <div className="text-muted-foreground">
-                                              {user.email}
-                                            </div>
-                                          </div>
-                                          <Badge
-                                            variant="outline"
-                                            className="text-xs"
-                                          >
-                                            {user.user_roles?.name}
-                                          </Badge>
-                                        </div>
-                                      ))}
-                                      {org.users.length > 3 && (
-                                        <div className="text-xs text-muted-foreground text-center py-1">
-                                          +{org.users.length - 3} flere brugere
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-xs text-muted-foreground">
-                                    Ingen brugere i denne organisation
-                                  </div>
-                                )}
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <Building2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                          <div className="text-sm text-muted-foreground">
-                            Ingen organisationer tilknyttet dette firma
-                          </div>
-                        </div>
+                      {company.created_at && (
+                        <Badge
+                          variant="outline"
+                          className="flex items-center gap-1 text-xs px-2 py-0.5"
+                        >
+                          <Calendar className="w-3 h-3" />
+                          {new Date(company.created_at).toLocaleDateString(
+                            "da-DK"
+                          )}
+                        </Badge>
                       )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                          <Building2 className="w-5 h-5" />
+                          Organisationer ({totalOrganizations})
+                        </h3>
+                        {company.organizations &&
+                        company.organizations.length > 0 ? (
+                          <div className="grid gap-4">
+                            {company.organizations.map((org) => (
+                              <Card
+                                key={org.id}
+                                className="border border-border bg-secondary/20"
+                              >
+                                <CardHeader className="pb-3">
+                                  <div className="flex justify-between items-start">
+                                    <CardTitle className="text-base">
+                                      {org.name}
+                                    </CardTitle>
+                                    <div className="flex gap-2 items-center">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {org.users?.length || 0} brugere
+                                      </Badge>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="text-destructive border-destructive hover:bg-destructive/10"
+                                        onClick={() =>
+                                          setDeleteOrganization(org)
+                                        }
+                                      >
+                                        <Trash2 className="w-3 h-3" /> Slet
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="pt-0">
+                                  <div className="text-xs text-muted-foreground mb-4 flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    Oprettet:{" "}
+                                    {new Date(
+                                      org.created_at
+                                    ).toLocaleDateString("da-DK")}
+                                  </div>
+                                  {/* Users in this organization */}
+                                  {org.users && org.users.length > 0 ? (
+                                    <div className="space-y-2">
+                                      <div className="text-sm font-medium">
+                                        Brugere:
+                                      </div>
+                                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                                        {org.users.slice(0, 3).map((user) => (
+                                          <div
+                                            key={user.id}
+                                            className="text-xs p-2 bg-background/50 rounded flex justify-between items-center"
+                                          >
+                                            <div>
+                                              <div className="font-medium">
+                                                {user.name}
+                                              </div>
+                                              <div className="text-muted-foreground">
+                                                {user.email}
+                                              </div>
+                                            </div>
+                                            <Badge
+                                              variant="outline"
+                                              className="text-xs"
+                                            >
+                                              {user.user_roles?.name}
+                                            </Badge>
+                                          </div>
+                                        ))}
+                                        {org.users.length > 3 && (
+                                          <div className="text-xs text-muted-foreground text-center py-1">
+                                            +{org.users.length - 3} flere
+                                            brugere
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-muted-foreground">
+                                      Ingen brugere i denne organisation
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <Building2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                            <div className="text-sm text-muted-foreground">
+                              Ingen organisationer tilknyttet dette firma
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
-      {/* Dialogs */}
-      <CompanyEditDialog
-        company={editCompany}
-        open={!!editCompany}
-        onOpenChange={(open) => !open && setEditCompany(null)}
-        onCompanyUpdated={refreshData}
-      />
-      <CompanyDeleteDialog
-        company={deleteCompany}
-        open={!!deleteCompany}
-        onOpenChange={(open) => !open && setDeleteCompany(null)}
-        onCompanyDeleted={refreshData}
-      />
-      <CompanyDetailsDialog
-        company={detailsCompany}
-        open={!!detailsCompany}
-        onOpenChange={(open) => !open && setDetailsCompany(null)}
-      />
-    </TabsContent>
-    <TabsContent value="users">
-      <UserAdminTab />
-    </TabsContent>
-  </Tabs>
+        {/* Dialogs */}
+        <CompanyEditDialog
+          company={editCompany}
+          open={!!editCompany}
+          onOpenChange={(open) => !open && setEditCompany(null)}
+          onCompanyUpdated={refreshData}
+        />
+        <CompanyDeleteDialog
+          company={deleteCompany}
+          open={!!deleteCompany}
+          onOpenChange={(open) => !open && setDeleteCompany(null)}
+          onCompanyDeleted={refreshData}
+        />
+        <CompanyDetailsDialog
+          company={detailsCompany}
+          open={!!detailsCompany}
+          onOpenChange={(open) => !open && setDetailsCompany(null)}
+        />
+      </TabsContent>
+      <TabsContent value="users">
+        <UserAdminTab />
+      </TabsContent>
+    </Tabs>
   );
 };
