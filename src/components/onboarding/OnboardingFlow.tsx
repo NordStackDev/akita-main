@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { OnboardingPage } from "@/components/auth/OnboardingPage";
 import { CEOOnboardingForm } from "@/components/ceo/CEOOnboardingForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ interface OnboardingFlowProps {
   onComplete: () => void;
 }
 
-export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ role, onComplete }) => {
+export const OnboardingFlow: React.FC<OnboardingFlowProps> = memo(({ role, onComplete }) => {
   const [step, setStep] = useState(0);
 
   // CEO flow: Personal info → Company creation
@@ -62,4 +62,4 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ role, onComplete
   }
 
   return null;
-};
+});

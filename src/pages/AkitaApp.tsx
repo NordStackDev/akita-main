@@ -6,11 +6,12 @@ import { SalesPage } from "@/components/sales/SalesPage";
 import { LocationsPage } from "@/components/locations/LocationsPage";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { TrackingPage } from "@/components/tracking/TrackingPage";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { StatsPage } from "@/components/stats/StatsPage";
 import { TeamPage } from "@/components/team/TeamPage";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { AppLayout } from "@/components/AppLayout";
 
 import { CEOTeamManagement } from "@/components/ceo/CEOTeamManagement";
@@ -43,27 +44,21 @@ export const AkitaApp = () => {
     else setRoleLoading(false);
   }, [user]);
 
+  // Optimize: Only reload user role when actually needed
   const loadUserRole = async () => {
+    if (!user?.id) return;
+    
     try {
+      // Ensure invited users are properly linked
       try { await supabase.rpc("attach_auth_user_to_invited_user"); } catch {}
 
       const { data, error } = await supabase
         .from("users")
         .select("first_login_completed, force_password_reset, role_id, organization_id, user_roles!inner(level,name)")
-        .eq("id", user!.id)
+        .eq("id", user.id)
         .maybeSingle();
 
-      if (error) {
-        // Hvis Supabase returnerer 403 (session invalid/brugeren slettet), log ud og redirect
-        if (error.code === "403") {
-          await signOut();
-          navigate("/app/auth", { replace: true });
-          return;
-        }
-        console.error("Error loading user role:", error);
-      }
-
-      if (!data) {
+      if (error?.code === "403" || !data) {
         await signOut();
         navigate("/app/auth", { replace: true });
         return;
@@ -71,15 +66,14 @@ export const AkitaApp = () => {
 
       setUserRole({ level: data.user_roles.level, name: data.user_roles.name });
       setOnboardingRequired(!data.first_login_completed);
-      if (data.user_roles.name === "ceo" && (!data.organization_id || !data.first_login_completed)) {
-        setCeoOnboardingRequired(true);
-      }
+      setCeoOnboardingRequired(
+        data.user_roles.name === "ceo" && 
+        (!data.organization_id || !data.first_login_completed)
+      );
     } catch (error: any) {
-      // Fallback: Hvis Supabase fejler med 403, log ud og redirect
       if (error?.code === "403") {
         await signOut();
         navigate("/app/auth", { replace: true });
-        return;
       }
       console.error("Error loading user role:", error);
     } finally {
@@ -87,7 +81,7 @@ export const AkitaApp = () => {
     }
   };
 
-  if (roleLoading) return null;
+  if (roleLoading) return <LoadingSkeleton />;
 
   if (!user) return <Navigate to="/app/auth" replace />;
 
@@ -96,13 +90,12 @@ export const AkitaApp = () => {
   if (userRole?.name?.toLowerCase() === "ceo") role = "ceo";
   else if (userRole?.name?.toLowerCase() === "admin") role = "admin";
 
-    // Kun reload userRole når hele onboarding-stepperen er færdig (onComplete)
-    const handleOnboardingComplete = () => {
-      setCeoOnboardingRequired(false);
-      setOnboardingRequired(false);
-      // Reload userRole after onboarding completion
-      loadUserRole();
-    };
+  // Optimize: Use useCallback for onboarding completion
+  const handleOnboardingComplete = useCallback(() => {
+    setCeoOnboardingRequired(false);
+    setOnboardingRequired(false);
+    loadUserRole();
+  }, []);
 
     return <OnboardingFlow role={role} onComplete={handleOnboardingComplete} />;
   }

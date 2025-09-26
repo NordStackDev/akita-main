@@ -87,14 +87,12 @@ export const useInvitationAcceptance = () => {
         }
 
         toast({
-          title: "Invitation accepteret",
-          description: "Din konto er nu aktiv. Du kan oprette din adgangskode.",
+          title: "Invitation accepteret", 
+          description: "Din konto er nu aktiv.",
         });
-        // Redirect til app (onboarding)
-        setTimeout(() => navigate("/app"), 1200);
-
-        // Redirect til AkitaApp så onboarding kan begynde
-        navigate("/app/dashboard");
+        
+        // Let AkitaApp handle the flow based on role and onboarding status
+        navigate("/app");
       } catch (error: any) {
         console.error("Error processing invitation:", error);
         toast({
