@@ -57,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
     let targetOrganizationId = (organizationId && organizationId.trim() !== '') ? organizationId : null;
     if (!targetOrganizationId) {
       const { data: inviterProfile, error: inviterProfileError } = await supabase
-        .from('profiles')
+        .from('onboarding@akitasales.dk')
         .select('organization_id')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -302,11 +302,14 @@ if (createUserError) {
 
 // Send invitation email with verification link
 const isCEO = role === 'ceo';
-const { data: emailData, error: emailError } = await resend.emails.send({
-  from: 'AKITA <onboarding@resend.dev>',
-  to: [email],
-  subject: isCEO ? '👑 CEO invitation til AKITA – Bekræft din konto' : 'Velkommen til AKITA – Bekræft din konto',
-  html: `
+console.log('Forsøger at sende invitation til:', email);
+let emailData, emailError;
+try {
+  ({ data: emailData, error: emailError } = await resend.emails.send({
+    from: 'AKITA <onboarding@akitasales.dk>',
+    to: [email],
+    subject: isCEO ? '👑 CEO invitation til AKITA – Bekræft din konto' : 'Velkommen til AKITA – Bekræft din konto',
+    html: `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, #ff0000, #cc0000); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;">
         <h1 style="color: white; margin: 0; font-size: 28px;">
@@ -350,8 +353,13 @@ const { data: emailData, error: emailError } = await resend.emails.send({
         <p>Hvis du ikke har anmodet om denne invitation, kan du ignorere denne email.</p>
       </div>
     </div>
-  `,
-});
+    `,
+  }));
+  console.log('Resend respons:', { emailData, emailError });
+} catch (err) {
+  console.error('Fejl under send af mail:', err);
+  emailError = err;
+}
 
 if (emailError) {
   console.error('Resend email error:', emailError);
