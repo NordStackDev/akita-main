@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import {
   Users,
   UserCheck,
@@ -220,7 +221,7 @@ export const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {adminData.totalUsers}
+              <AnimatedCounter value={adminData.totalUsers} />
             </div>
             <p className="text-xs text-muted-foreground">{isGlobalAdmin ? "I systemet" : "I organisationen"}</p>
           </CardContent>
@@ -235,10 +236,10 @@ export const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {adminData.activeUsers}
+              <AnimatedCounter value={adminData.activeUsers} />
             </div>
             <p className="text-xs text-muted-foreground">
-              Af {adminData.totalUsers} brugere {isGlobalAdmin ? "i systemet" : "i organisationen"}
+              Af <AnimatedCounter value={adminData.totalUsers} /> brugere {isGlobalAdmin ? "i systemet" : "i organisationen"}
             </p>
           </CardContent>
         </Card>
@@ -252,7 +253,7 @@ export const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
-              {adminData.pendingInvitations}
+              <AnimatedCounter value={adminData.pendingInvitations} />
             </div>
             <p className="text-xs text-muted-foreground">Afventer svar</p>
           </CardContent>

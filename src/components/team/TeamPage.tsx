@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { Users, Trophy, Target, TrendingUp } from "lucide-react";
 
 interface TeamMember {
@@ -138,7 +139,9 @@ export const TeamPage = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{teamMembers.length}</div>
+                <div className="text-2xl font-bold">
+                  <AnimatedCounter value={teamMembers.length} />
+                </div>
                 <p className="text-xs text-muted-foreground">Aktive sælgere</p>
               </CardContent>
             </Card>
@@ -150,7 +153,7 @@ export const TeamPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {teamMembers.reduce((sum, member) => sum + (member.sales_count || 0), 0)}
+                  <AnimatedCounter value={teamMembers.reduce((sum, member) => sum + (member.sales_count || 0), 0)} />
                 </div>
                 <p className="text-xs text-muted-foreground">Fra alle medlemmer</p>
               </CardContent>
@@ -163,7 +166,7 @@ export const TeamPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {teamMembers.reduce((sum, member) => sum + (member.total_points || 0), 0)}
+                  <AnimatedCounter value={teamMembers.reduce((sum, member) => sum + (member.total_points || 0), 0)} />
                 </div>
                 <p className="text-xs text-muted-foreground">Samlet resultat</p>
               </CardContent>
@@ -210,11 +213,15 @@ export const TeamPage = () => {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-center">
-                        <p className="text-lg font-bold">{member.sales_count}</p>
+                        <p className="text-lg font-bold">
+                          <AnimatedCounter value={member.sales_count || 0} />
+                        </p>
                         <p className="text-xs text-muted-foreground">Salg</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-lg font-bold">{member.total_points}</p>
+                        <p className="text-lg font-bold">
+                          <AnimatedCounter value={member.total_points || 0} />
+                        </p>
                         <p className="text-xs text-muted-foreground">Points</p>
                       </div>
                       <Badge 

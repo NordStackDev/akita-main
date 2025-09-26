@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import {
   Users,
   TrendingUp,
@@ -363,7 +364,9 @@ export const CEODashboard = () => {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalSales}</div>
+            <div className="text-2xl font-bold">
+              <AnimatedCounter value={stats.totalSales} />
+            </div>
             <p className="text-xs text-muted-foreground">Fra alle sælgere</p>
           </CardContent>
         </Card>
@@ -376,7 +379,9 @@ export const CEODashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTeamMembers}</div>
+            <div className="text-2xl font-bold">
+              <AnimatedCounter value={stats.totalTeamMembers} />
+            </div>
             <p className="text-xs text-muted-foreground">Aktive sælgere</p>
           </CardContent>
         </Card>
@@ -387,7 +392,9 @@ export const CEODashboard = () => {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPoints}</div>
+            <div className="text-2xl font-bold">
+              <AnimatedCounter value={stats.totalPoints} />
+            </div>
             <p className="text-xs text-muted-foreground">Fra alle salg</p>
           </CardContent>
         </Card>
@@ -404,7 +411,7 @@ export const CEODashboard = () => {
                 : "Ingen data"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats.topPerformer?.total_points || 0} points
+              <AnimatedCounter value={stats.topPerformer?.total_points || 0} /> points
             </p>
           </CardContent>
         </Card>
@@ -447,11 +454,15 @@ export const CEODashboard = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-center">
-                      <p className="text-lg font-bold">{member.sales_count}</p>
+                      <p className="text-lg font-bold">
+                        <AnimatedCounter value={member.sales_count || 0} />
+                      </p>
                       <p className="text-xs text-muted-foreground">Salg</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-lg font-bold">{member.total_points}</p>
+                      <p className="text-lg font-bold">
+                        <AnimatedCounter value={member.total_points || 0} />
+                      </p>
                       <p className="text-xs text-muted-foreground">Points</p>
                     </div>
                     <Badge variant="secondary">{member.user_roles.name}</Badge>
