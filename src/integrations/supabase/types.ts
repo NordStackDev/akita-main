@@ -1011,6 +1011,30 @@ export type Database = {
           },
         ]
       }
+      region_postal_mapping: {
+        Row: {
+          created_at: string
+          from_zip: number
+          id: string
+          region_name: string
+          to_zip: number
+        }
+        Insert: {
+          created_at?: string
+          from_zip: number
+          id?: string
+          region_name: string
+          to_zip: number
+        }
+        Update: {
+          created_at?: string
+          from_zip?: number
+          id?: string
+          region_name?: string
+          to_zip?: number
+        }
+        Relationships: []
+      }
       regions: {
         Row: {
           created_at: string
