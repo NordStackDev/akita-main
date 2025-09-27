@@ -44,13 +44,20 @@ export const AkitaApp = () => {
     else setRoleLoading(false);
   }, [user]);
 
-  // Optimize: Only reload user role when actually needed
+  // Load user role when user is available and authenticated
   const loadUserRole = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setRoleLoading(false);
+      return;
+    }
     
     try {
       // Ensure invited users are properly linked
-      try { await supabase.rpc("attach_auth_user_to_invited_user"); } catch {}
+      try { 
+        await supabase.rpc("attach_auth_user_to_invited_user"); 
+      } catch (e) {
+        console.log("RPC call handled:", e);
+      }
 
       const { data, error } = await supabase
         .from("users")
@@ -58,7 +65,19 @@ export const AkitaApp = () => {
         .eq("id", user.id)
         .maybeSingle();
 
-      if (error?.code === "403" || !data) {
+      if (error) {
+        console.error("Error loading user data:", error);
+        if (error.code === "PGRST116") {
+          // User not found in database - probably needs onboarding
+          setOnboardingRequired(true);
+          setRoleLoading(false);
+          return;
+        }
+        throw error;
+      }
+
+      if (!data) {
+        console.log("No user data found, redirecting to auth");
         await signOut();
         navigate("/app/auth", { replace: true });
         return;
@@ -71,11 +90,11 @@ export const AkitaApp = () => {
         (!data.organization_id || !data.first_login_completed)
       );
     } catch (error: any) {
-      if (error?.code === "403") {
+      console.error("Error in loadUserRole:", error);
+      if (error?.code === "403" || error?.code === "401") {
         await signOut();
         navigate("/app/auth", { replace: true });
       }
-      console.error("Error loading user role:", error);
     } finally {
       setRoleLoading(false);
     }
